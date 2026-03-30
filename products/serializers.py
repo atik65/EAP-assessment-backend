@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Category, Product
+from .models import Category, Product, RestockQueue
 
 User = get_user_model()
 
@@ -215,4 +215,66 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
         Status is automatically managed by the model's save() method.
         """
         return super().update(instance, validated_data)
+
+
+# =============================================================================
+# RESTOCK QUEUE SERIALIZERS — MODULE B4
+# =============================================================================
+
+class RestockQueueProductSerializer(serializers.ModelSerializer):
+    """
+    Simplified Product Serializer for Restock Queue
+    
+    Shows essential product information for restock queue entries.
+    """
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'stock_quantity', 'min_stock_threshold']
+        read_only_fields = ['id', 'name', 'stock_quantity', 'min_stock_threshold']
+
+
+class RestockQueueSerializer(serializers.ModelSerializer):
+    """
+    Restock Queue List Serializer — Module B4
+    
+    Displays restock queue entries with nested product information and computed priority.
+    Priority is dynamically calculated based on current stock levels.
+    """
+    product = RestockQueueProductSerializer(read_only=True)
+    priority = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = RestockQueue
+        fields = ['id', 'product', 'priority', 'added_at']
+        read_only_fields = ['id', 'product', 'added_at']
+    
+    def get_priority(self, obj):
+        """
+        Get the computed priority level from the model property.
+        
+        Returns:
+            str: Priority level ('High', 'Medium', or 'Low')
+        """
+        return obj.priority
+
+
+class RestockActionSerializer(serializers.Serializer):
+    """
+    Restock Action Serializer — Module B4
+    
+    Used for manual restocking of products.
+    Validates the quantity to add and performs the stock update.
+    """
+    quantity_to_add = serializers.IntegerField(
+        min_value=1,
+        help_text="Quantity to add to current stock (must be positive)"
+    )
+    
+    def validate_quantity_to_add(self, value):
+        """
+        Validate that quantity to add is positive.
+        """
+        if value < 1:
+            raise serializers.ValidationError("Quantity to add must be at least 1.")
+        return value
 

@@ -3,15 +3,18 @@ from rest_framework.routers import DefaultRouter
 from . import views
 
 # =============================================================================
-# API ROUTER CONFIGURATION — Module B2
+# API ROUTER CONFIGURATION — Modules B2 & B4
 # =============================================================================
 
 # Create a router and register viewsets
 router = DefaultRouter()
 
-# Register Category and Product ViewSets
+# Module B2: Register Category and Product ViewSets
 router.register(r'categories', views.CategoryViewSet, basename='category')
 router.register(r'products', views.ProductViewSet, basename='product')
+
+# Module B4: Register Restock Queue ViewSet
+router.register(r'restock', views.RestockQueueViewSet, basename='restock')
 
 # =============================================================================
 # URL PATTERNS
@@ -20,6 +23,8 @@ router.register(r'products', views.ProductViewSet, basename='product')
 urlpatterns = [
     # Include all router-generated URLs
     # This creates the following endpoints:
+    # 
+    # Module B2 — Categories & Products:
     # - GET    /api/categories/          - List all categories
     # - POST   /api/categories/          - Create a category
     # - GET    /api/categories/{id}/     - Get category details
@@ -31,6 +36,12 @@ urlpatterns = [
     # - GET    /api/products/{id}/       - Get product details
     # - PATCH  /api/products/{id}/       - Update product
     # - DELETE /api/products/{id}/       - Archive product (soft delete)
+    # 
+    # Module B4 — Restock Queue:
+    # - GET    /api/restock/             - List restock queue
+    # - GET    /api/restock/{id}/        - Get restock queue entry details
+    # - POST   /api/restock/{id}/restock/ - Restock a product (add stock)
+    # - DELETE /api/restock/{id}/        - Manually remove from queue
     path('api/', include(router.urls)),
 ]
 

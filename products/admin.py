@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import Category, Product
+from .models import Category, Product, RestockQueue
 
 
 # =============================================================================
@@ -139,3 +139,123 @@ class ProductAdmin(ModelAdmin):
         if not change and not obj.created_by:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+
+
+# =============================================================================
+# RESTOCK QUEUE ADMIN — MODULE B4
+# =============================================================================
+
+@admin.register(RestockQueue)
+class RestockQueueAdmin(ModelAdmin):
+    """
+    Restock Queue Admin Configuration — Module B4
+    
+    Provides Django admin interface for viewing and managing the restock queue.
+    Features:
+    - List view with product details and priority
+    - Priority-based color coding
+    - Read-only display (queue is auto-managed)
+    - Ordered by stock quantity (lowest first)
+    """
+    list_display = (
+        'id',
+        'get_product_name',
+        'get_stock_quantity',
+        'get_min_threshold',
+        'get_colored_priority',
+        'added_at'
+    )
+    list_filter = ('added_at',)
+    search_fields = ('product__name',)
+    fields = (
+        'product',
+        'get_product_details',
+        'get_priority_level',
+        'added_at'
+    )
+    readonly_fields = ('product', 'get_product_details', 'get_priority_level', 'added_at')
+    ordering = ('product__stock_quantity', 'added_at')
+    list_per_page = 20
+    
+    def get_product_name(self, obj):
+        """Display product name."""
+        return obj.product.name
+    get_product_name.short_description = 'Product'
+    
+    def get_stock_quantity(self, obj):
+        """Display current stock quantity."""
+        return obj.product.stock_quantity
+    get_stock_quantity.short_description = 'Current Stock'
+    
+    def get_min_threshold(self, obj):
+        """Display minimum stock threshold."""
+        return obj.product.min_stock_threshold
+    get_min_threshold.short_description = 'Min Threshold'
+    
+    def get_colored_priority(self, obj):
+        """
+        Display priority with color coding for better visibility.
+        """
+        priority = obj.priority
+        colors = {
+            RestockQueue.PRIORITY_HIGH: 'red',
+            RestockQueue.PRIORITY_MEDIUM: 'orange',
+            RestockQueue.PRIORITY_LOW: 'blue'
+        }
+        color = colors.get(priority, 'black')
+        
+        # Add emoji for visual distinction
+        emojis = {
+            RestockQueue.PRIORITY_HIGH: '🔴',
+            RestockQueue.PRIORITY_MEDIUM: '🟠',
+            RestockQueue.PRIORITY_LOW: '🔵'
+        }
+        emoji = emojis.get(priority, '')
+        
+        return f'<span style="color: {color}; font-weight: bold;">{emoji} {priority}</span>'
+    get_colored_priority.short_description = 'Priority'
+    get_colored_priority.allow_tags = True
+    
+    def get_product_details(self, obj):
+        """
+        Display detailed product information in the detail view.
+        """
+        product = obj.product
+        return (
+            f"Name: {product.name}\n"
+            f"Stock: {product.stock_quantity} / {product.min_stock_threshold} (threshold)\n"
+            f"Status: {product.get_status_display()}\n"
+            f"Category: {product.category.name}"
+        )
+    get_product_details.short_description = 'Product Details'
+    
+    def get_priority_level(self, obj):
+        """Display priority level in detail view."""
+        return obj.priority
+    get_priority_level.short_description = 'Priority Level'
+    
+    def get_queryset(self, request):
+        """
+        Optimize queryset with select_related for better performance.
+        """
+        qs = super().get_queryset(request)
+        return qs.select_related('product', 'product__category')
+    
+    def has_add_permission(self, request):
+        """
+        Disable manual creation - queue is automatically managed.
+        """
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """
+        Disable editing - queue is automatically managed.
+        Allow viewing only.
+        """
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """
+        Allow manual deletion (removal from queue).
+        """
+        return True

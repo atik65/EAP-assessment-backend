@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status, filters
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,14 +7,16 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 import logging
 
-from .models import Category, Product
+from .models import Category, Product, RestockQueue, check_restock_queue
 from .serializers import (
     CategorySerializer,
     CategoryListSerializer,
     CategoryCreateUpdateSerializer,
     ProductListSerializer,
     ProductDetailSerializer,
-    ProductCreateUpdateSerializer
+    ProductCreateUpdateSerializer,
+    RestockQueueSerializer,
+    RestockActionSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -337,5 +339,165 @@ class ProductViewSet(viewsets.ModelViewSet):
         """PUT method is not allowed. Use PATCH instead."""
         return Response(
             {"detail": "Method 'PUT' not allowed. Use PATCH for partial updates."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+
+# =============================================================================
+# RESTOCK QUEUE VIEWSET — MODULE B4
+# =============================================================================
+
+class RestockQueueViewSet(viewsets.ModelViewSet):
+    """
+    Restock Queue ViewSet — Module B4
+    
+    Manages the automatic restock queue for low-stock products.
+    
+    Endpoints:
+    - list: GET /api/restock/ - List all products in restock queue
+    - restock: POST /api/restock/{id}/restock/ - Add stock to a product
+    - destroy: DELETE /api/restock/{id}/ - Manually remove from queue
+    
+    Products are automatically added when stock < min_stock_threshold
+    and removed when stock >= min_stock_threshold.
+    
+    List is ordered by stock_quantity ASC (lowest stock first).
+    """
+    queryset = RestockQueue.objects.select_related('product', 'product__category').all()
+    serializer_class = RestockQueueSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Disable create and update - queue is auto-managed
+    http_method_names = ['get', 'delete', 'post']  # Only allow GET, DELETE, and POST (for custom actions)
+    
+    @extend_schema(
+        summary="List restock queue",
+        description="Get all products in the restock queue, ordered by stock quantity (lowest first). "
+                    "Priority is computed based on current stock levels.",
+        responses={200: RestockQueueSerializer(many=True)}
+    )
+    def list(self, request, *args, **kwargs):
+        """
+        List all products in restock queue.
+        
+        Ordered by stock_quantity ASC (products with lowest stock appear first).
+        """
+        return super().list(request, *args, **kwargs)
+    
+    @extend_schema(
+        summary="Get restock queue entry details",
+        description="Retrieve details of a specific restock queue entry",
+        responses={200: RestockQueueSerializer}
+    )
+    def retrieve(self, request, *args, **kwargs):
+        """Get details of a specific restock queue entry."""
+        return super().retrieve(request, *args, **kwargs)
+    
+    @extend_schema(
+        summary="Restock product",
+        description="Add stock to a product in the restock queue. "
+                    "Automatically re-evaluates queue status after restocking.",
+        request=RestockActionSerializer,
+        responses={200: RestockQueueSerializer}
+    )
+    @action(detail=True, methods=['post'])
+    def restock(self, request, pk=None):
+        """
+        Add stock to a product and re-evaluate restock queue.
+        
+        Request body: {"quantity_to_add": 50}
+        
+        This endpoint:
+        1. Validates the quantity to add
+        2. Adds quantity to product's current stock
+        3. Triggers restock queue re-evaluation
+        4. Returns updated queue entry (or removes it if stock is now sufficient)
+        """
+        # Get the queue entry
+        queue_entry = self.get_object()
+        product = queue_entry.product
+        
+        # Validate input
+        serializer = RestockActionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        quantity_to_add = serializer.validated_data['quantity_to_add']
+        
+        # Update stock quantity
+        old_stock = product.stock_quantity
+        product.stock_quantity += quantity_to_add
+        product.save()  # This will automatically trigger check_restock_queue
+        
+        logger.info(
+            f"Product restocked: {product.name} (ID: {product.id}) - "
+            f"Stock: {old_stock} → {product.stock_quantity} (+{quantity_to_add}) "
+            f"by user {request.user.email}"
+        )
+        
+        # Check if product is still in queue after restock
+        try:
+            # Refresh from DB to get latest state
+            queue_entry.refresh_from_db()
+            response_serializer = RestockQueueSerializer(queue_entry)
+            return Response(response_serializer.data)
+        except RestockQueue.DoesNotExist:
+            # Product was removed from queue (stock is now sufficient)
+            return Response(
+                {
+                    "detail": f"Product '{product.name}' restocked successfully. "
+                              f"Removed from restock queue (stock now: {product.stock_quantity}).",
+                    "product": {
+                        "id": str(product.id),
+                        "name": product.name,
+                        "stock_quantity": product.stock_quantity,
+                        "min_stock_threshold": product.min_stock_threshold
+                    }
+                },
+                status=status.HTTP_200_OK
+            )
+    
+    @extend_schema(
+        summary="Remove from queue",
+        description="Manually remove a product from the restock queue. "
+                    "Note: Product may be re-added automatically if stock is still low.",
+        responses={204: None}
+    )
+    def destroy(self, request, *args, **kwargs):
+        """
+        Manually remove a product from the restock queue.
+        
+        Note: If the product's stock is still below threshold, it may be
+        automatically re-added to the queue on next stock change.
+        """
+        queue_entry = self.get_object()
+        product_name = queue_entry.product.name
+        
+        logger.info(
+            f"Product manually removed from restock queue: {product_name} "
+            f"by user {request.user.email}"
+        )
+        
+        queue_entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    # Disable create and update methods
+    def create(self, request, *args, **kwargs):
+        """Create is not allowed. Queue is automatically managed based on stock levels."""
+        return Response(
+            {"detail": "Cannot manually create restock queue entries. Queue is automatically managed."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+    
+    def update(self, request, *args, **kwargs):
+        """Update is not allowed. Queue is automatically managed."""
+        return Response(
+            {"detail": "Cannot update restock queue entries. Queue is automatically managed."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Partial update is not allowed. Queue is automatically managed."""
+        return Response(
+            {"detail": "Cannot update restock queue entries. Queue is automatically managed."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED
         )

@@ -23,7 +23,12 @@ This project follows the Software Requirements Specification (SRS) document for 
 |        | ├─ Low Stock Detection                  | ✅              |
 |        | └─ Soft Delete (Archiving)              | ✅              |
 | **B3** | **Orders**                              | 🔄 Pending      |
-| **B4** | **Restock Queue**                       | 🔄 Pending      |
+| **B4** | **Restock Queue**                       | ✅ **Complete** |
+|        | ├─ RestockQueue Model                   | ✅              |
+|        | ├─ Auto Queue Management                | ✅              |
+|        | ├─ Priority Calculation (High/Med/Low)  | ✅              |
+|        | ├─ Manual Restock Endpoint              | ✅              |
+|        | └─ Queue Listing & Removal              | ✅              |
 | **B5** | **Activity Log**                        | 🔄 Pending      |
 | **B6** | **Dashboard Stats**                     | 🔄 Pending      |
 | **B7** | **Deployment**                          | 🔄 Pending      |
@@ -61,10 +66,17 @@ This project follows the Software Requirements Specification (SRS) document for 
 - ✅ **Soft Delete** - Archive products while preserving history
 - ✅ **Validation** - Comprehensive input validation
 
-### Coming Soon (SRS Modules B3-B7)
+### Module B4 — Restock Queue (Implemented ✅)
+
+- ✅ **Automatic Queue Management** - Products auto-added when low stock
+- ✅ **Priority Calculation** - High/Medium/Low based on stock levels
+- ✅ **Manual Restocking** - Add stock via API endpoint
+- ✅ **Smart Re-evaluation** - Auto-remove when stock sufficient
+- ✅ **Ordered Listing** - Lowest stock products first
+
+### Coming Soon (SRS Modules B3, B5-B7)
 
 - 🔄 Order Processing with stock deduction
-- 🔄 Restock Queue with priority management
 - 🔄 Activity Logging (audit trail)
 - 🔄 Dashboard Statistics & Analytics
 - 🔄 Production Deployment Configuration
@@ -795,6 +807,340 @@ curl -X DELETE http://localhost:8000/api/categories/<CATEGORY_UUID>/ \
 6. **Optimized Queries** - Select/prefetch related for performance
 7. **Low Stock Detection** - Computed property for stock alerts
 8. **Delete Protection** - Categories cannot be deleted if products exist
+
+## 📦 Module B4 — Restock Queue (Implemented ✅)
+
+This module implements an intelligent restock queue system with automatic management and priority-based ordering for low-stock products.
+
+### RestockQueue Model
+
+The restock queue automatically tracks products that need restocking:
+
+| Field            | Type         | Description                            |
+| ---------------- | ------------ | -------------------------------------- |
+| `id`             | UUID         | Primary key (UUID4)                    |
+| `product`        | OneToOne FK  | Product in restock queue (unique)      |
+| `stock_quantity` | IntegerField | Current stock (cached for performance) |
+| `added_at`       | DateTime     | Timestamp when added to queue          |
+
+**Computed Properties:**
+
+- `priority` - Returns `High`, `Medium`, or `Low` based on stock levels
+
+**Priority Calculation (Auto-Computed):**
+
+```python
+# High Priority: Product completely out of stock
+stock_quantity == 0  →  priority = 'High'
+
+# Medium Priority: Stock is critically low (less than half threshold)
+stock_quantity <= min_stock_threshold / 2  →  priority = 'Medium'
+
+# Low Priority: Stock below threshold but not critical
+stock_quantity < min_stock_threshold  →  priority = 'Low'
+```
+
+### Automatic Queue Management
+
+The queue is **fully automated** — products are added and removed automatically based on stock levels:
+
+**Auto-Add to Queue:**
+
+```python
+# Triggered when saving a product
+if product.stock_quantity < product.min_stock_threshold:
+    # Product is automatically added to restock queue
+    RestockQueue.objects.get_or_create(product=product)
+```
+
+**Auto-Remove from Queue:**
+
+```python
+# Triggered after restocking
+if product.stock_quantity >= product.min_stock_threshold:
+    # Product is automatically removed from queue
+    RestockQueue.objects.filter(product=product).delete()
+```
+
+**Features:**
+
+- ✅ No manual queue management needed
+- ✅ Real-time updates when stock changes
+- ✅ Automatic re-evaluation after restocking
+- ✅ Prevents duplicate entries (OneToOne relationship)
+
+### Restock Queue API Endpoints
+
+All restock queue endpoints are prefixed with `/api/restock/`:
+
+| Method | Endpoint                     | Auth Required | Description                          |
+| ------ | ---------------------------- | ------------- | ------------------------------------ |
+| GET    | `/api/restock/`              | Yes           | List all products in restock queue   |
+| GET    | `/api/restock/{id}/`         | Yes           | Get specific queue entry details     |
+| POST   | `/api/restock/{id}/restock/` | Yes           | Add stock to product (custom action) |
+| DELETE | `/api/restock/{id}/`         | Yes           | Manually remove from queue           |
+
+**Note:** The restock queue is auto-managed. You **cannot** manually create queue entries via POST to `/api/restock/`. Products are automatically added when stock falls below threshold.
+
+### Restock Queue List Response
+
+The queue is automatically **ordered by stock_quantity ascending** (lowest stock first = highest urgency):
+
+**GET** `/api/restock/`
+
+```json
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "product": {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "name": "iPhone 13",
+        "category": "Electronics",
+        "price": "999.00",
+        "stock_quantity": 0,
+        "min_stock_threshold": 5,
+        "status": "out_of_stock"
+      },
+      "stock_quantity": 0,
+      "priority": "High",
+      "added_at": "2025-06-10T10:00:00Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "product": {
+        "id": "550e8400-e29b-41d4-a716-446655440003",
+        "name": "MacBook Pro",
+        "category": "Electronics",
+        "price": "2499.00",
+        "stock_quantity": 2,
+        "min_stock_threshold": 10,
+        "status": "active"
+      },
+      "stock_quantity": 2,
+      "priority": "Medium",
+      "added_at": "2025-06-10T11:00:00Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440004",
+      "product": {
+        "id": "550e8400-e29b-41d4-a716-446655440005",
+        "name": "AirPods Pro",
+        "category": "Accessories",
+        "price": "249.00",
+        "stock_quantity": 8,
+        "min_stock_threshold": 15,
+        "status": "active"
+      },
+      "stock_quantity": 8,
+      "priority": "Low",
+      "added_at": "2025-06-10T12:00:00Z"
+    }
+  ]
+}
+```
+
+### Restock Action (Add Stock)
+
+Add stock to a product in the restock queue. The product will be **automatically removed** from the queue if stock reaches the threshold.
+
+**POST** `/api/restock/{id}/restock/`
+
+**Request Body:**
+
+```json
+{
+  "quantity_to_add": 10
+}
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "message": "Stock updated successfully. Product removed from restock queue.",
+  "product": {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "iPhone 13",
+    "category": "Electronics",
+    "price": "999.00",
+    "stock_quantity": 10,
+    "min_stock_threshold": 5,
+    "status": "active"
+  }
+}
+```
+
+**If Stock Still Below Threshold (200 OK):**
+
+```json
+{
+  "message": "Stock updated successfully. Product still in restock queue.",
+  "product": {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "iPhone 13",
+    "category": "Electronics",
+    "price": "999.00",
+    "stock_quantity": 3,
+    "min_stock_threshold": 5,
+    "status": "active"
+  }
+}
+```
+
+**Validation Errors:**
+
+```json
+// Missing quantity
+{
+  "quantity_to_add": ["This field is required."]
+}
+
+// Invalid quantity
+{
+  "quantity_to_add": ["Must be greater than 0."]
+}
+```
+
+### Manual Queue Removal
+
+You can manually remove a product from the restock queue (useful for discontinued items):
+
+**DELETE** `/api/restock/{id}/`
+
+```bash
+curl -X DELETE http://localhost:8000/api/restock/<QUEUE_ID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**Success Response (204 No Content):**
+
+```
+(No response body)
+```
+
+**Note:** The product will be **automatically re-added** to the queue if stock is still below threshold when updated.
+
+### Validation Rules (Module B4)
+
+**Restock Action Validation:**
+
+- ✅ `quantity_to_add` must be provided
+- ✅ `quantity_to_add` must be greater than 0
+- ✅ Quantity is added to current stock (not replaced)
+- ✅ Stock updates trigger automatic queue re-evaluation
+
+**Queue Management:**
+
+- ✅ Products automatically added when stock < threshold
+- ✅ Products automatically removed when stock >= threshold
+- ✅ Cannot manually create queue entries (auto-managed only)
+- ✅ Cannot have duplicate queue entries (OneToOne relationship)
+- ✅ Queue ordered by urgency (stock_quantity ASC)
+
+### Quick Test - Restock Queue (Module B4)
+
+Test the Restock Queue endpoints using curl:
+
+**1. Create a Low-Stock Product (Auto-Adds to Queue):**
+
+```bash
+curl -X POST http://localhost:8000/api/products/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "iPhone 13",
+    "category": "<CATEGORY_UUID>",
+    "price": "999.00",
+    "stock_quantity": 2,
+    "min_stock_threshold": 10
+  }'
+# Product automatically added to restock queue
+```
+
+**2. List Restock Queue (Ordered by Urgency):**
+
+```bash
+curl -X GET http://localhost:8000/api/restock/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+# Returns all products needing restock, lowest stock first
+```
+
+**3. Get Queue Entry Details:**
+
+```bash
+curl -X GET http://localhost:8000/api/restock/<QUEUE_ID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**4. Restock a Product (Auto-Removes if Sufficient):**
+
+```bash
+curl -X POST http://localhost:8000/api/restock/<QUEUE_ID>/restock/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "quantity_to_add": 15
+  }'
+# Adds 15 to stock_quantity, auto-removes from queue if stock >= threshold
+```
+
+**5. Manually Remove from Queue:**
+
+```bash
+curl -X DELETE http://localhost:8000/api/restock/<QUEUE_ID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+# Removes from queue (will re-add if stock still low)
+```
+
+**6. Test Priority Levels:**
+
+```bash
+# High Priority (stock = 0)
+curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"stock_quantity": 0}'
+
+# Medium Priority (stock <= threshold/2)
+curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"stock_quantity": 2}'  # If threshold is 10
+
+# Low Priority (stock < threshold)
+curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"stock_quantity": 8}'  # If threshold is 10
+```
+
+### Module B4 Implementation Details
+
+**Git Commit:** `feat(products): restock queue with auto-management & priority`
+
+**Files Modified/Created:**
+
+- `products/models.py` - RestockQueue model with priority property and check_restock_queue() helper
+- `products/serializers.py` - RestockQueue, RestockQueueProduct, and RestockAction serializers
+- `products/views.py` - RestockQueueViewSet with list, retrieve, restock action, destroy
+- `products/urls.py` - API routing for restock queue
+- `products/admin.py` - RestockQueueAdmin with color-coded priority display
+- `products/migrations/0003_restockqueue.py` - Database migration for RestockQueue table
+
+**Key Features:**
+
+1. **Automatic Queue Management** - Products auto-add/remove based on stock levels
+2. **Priority Calculation** - Three-tier priority system (High/Medium/Low)
+3. **Smart Re-evaluation** - Queue updates automatically after stock changes
+4. **Ordered by Urgency** - Lowest stock products appear first
+5. **Restock Action** - Custom endpoint to add stock and auto-remove from queue
+6. **OneToOne Relationship** - Prevents duplicate queue entries
+7. **Cached Stock** - Performance optimization with denormalized stock_quantity
+8. **Admin Color Coding** - Visual priority indicators (🔴 High, 🟠 Medium, 🔵 Low)
 
 ## �🔧 Configuration
 
