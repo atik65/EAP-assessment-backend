@@ -6,32 +6,39 @@ A production-ready Django REST Framework backend for the Smart Inventory & Order
 
 This project follows the Software Requirements Specification (SRS) document for the Smart Inventory & Order Management System.
 
-| Module | Feature                                 | Status          |
-| ------ | --------------------------------------- | --------------- |
-| **B1** | **Project Bootstrap & Authentication**  | ✅ **Complete** |
-|        | ├─ Custom User Model (UUID, Role-based) | ✅              |
-|        | ├─ JWT Authentication                   | ✅              |
-|        | ├─ User Registration                    | ✅              |
-|        | ├─ Login & Token Refresh                | ✅              |
-|        | ├─ Current User Profile                 | ✅              |
-|        | └─ Demo User Seeding                    | ✅              |
-| **B2** | **Categories & Products**               | ✅ **Complete** |
-|        | ├─ Category Model & CRUD                | ✅              |
-|        | ├─ Product Model with Auto-Status       | ✅              |
-|        | ├─ Product Filtering & Search           | ✅              |
-|        | ├─ Stock Status Management              | ✅              |
-|        | ├─ Low Stock Detection                  | ✅              |
-|        | └─ Soft Delete (Archiving)              | ✅              |
-| **B3** | **Orders**                              | 🔄 Pending      |
-| **B4** | **Restock Queue**                       | ✅ **Complete** |
-|        | ├─ RestockQueue Model                   | ✅              |
-|        | ├─ Auto Queue Management                | ✅              |
-|        | ├─ Priority Calculation (High/Med/Low)  | ✅              |
-|        | ├─ Manual Restock Endpoint              | ✅              |
-|        | └─ Queue Listing & Removal              | ✅              |
-| **B5** | **Activity Log**                        | 🔄 Pending      |
-| **B6** | **Dashboard Stats**                     | 🔄 Pending      |
-| **B7** | **Deployment**                          | 🔄 Pending      |
+| Module | Feature                                  | Status          |
+| ------ | ---------------------------------------- | --------------- |
+| **B1** | **Project Bootstrap & Authentication**   | ✅ **Complete** |
+|        | ├─ Custom User Model (UUID, Role-based)  | ✅              |
+|        | ├─ JWT Authentication                    | ✅              |
+|        | ├─ User Registration                     | ✅              |
+|        | ├─ Login & Token Refresh                 | ✅              |
+|        | ├─ Current User Profile                  | ✅              |
+|        | └─ Demo User Seeding                     | ✅              |
+| **B2** | **Categories & Products**                | ✅ **Complete** |
+|        | ├─ Category Model & CRUD                 | ✅              |
+|        | ├─ Product Model with Auto-Status        | ✅              |
+|        | ├─ Product Filtering & Search            | ✅              |
+|        | ├─ Stock Status Management               | ✅              |
+|        | ├─ Low Stock Detection                   | ✅              |
+|        | └─ Soft Delete (Archiving)               | ✅              |
+| **B3** | **Orders**                               | ✅ **Complete** |
+|        | ├─ Order & OrderItem Models              | ✅              |
+|        | ├─ Auto Order Number Generation          | ✅              |
+|        | ├─ Multi-Item Order Creation             | ✅              |
+|        | ├─ Automatic Stock Deduction             | ✅              |
+|        | ├─ Stock Validation & Conflict Check     | ✅              |
+|        | ├─ Status Lifecycle Management           | ✅              |
+|        | └─ Order Cancellation with Stock Restore | ✅              |
+| **B4** | **Restock Queue**                        | ✅ **Complete** |
+|        | ├─ RestockQueue Model                    | ✅              |
+|        | ├─ Auto Queue Management                 | ✅              |
+|        | ├─ Priority Calculation (High/Med/Low)   | ✅              |
+|        | ├─ Manual Restock Endpoint               | ✅              |
+|        | └─ Queue Listing & Removal               | ✅              |
+| **B5** | **Activity Log**                         | 🔄 Pending      |
+| **B6** | **Dashboard Stats**                      | 🔄 Pending      |
+| **B7** | **Deployment**                           | 🔄 Pending      |
 
 ## 🚀 Features
 
@@ -66,6 +73,16 @@ This project follows the Software Requirements Specification (SRS) document for 
 - ✅ **Soft Delete** - Archive products while preserving history
 - ✅ **Validation** - Comprehensive input validation
 
+### Module B3 — Orders (Implemented ✅)
+
+- ✅ **Order Creation** - Multi-item orders in atomic transactions
+- ✅ **Automatic Order Numbers** - Format: ORD-{YYYYMMDD}-{####}
+- ✅ **Stock Validation** - Check availability before order creation
+- ✅ **Automatic Stock Deduction** - Reduce inventory on order placement
+- ✅ **Status Lifecycle** - pending → confirmed → shipped → delivered
+- ✅ **Order Cancellation** - Restore stock when order is cancelled
+- ✅ **Advanced Filtering** - Filter by status, date, customer search
+
 ### Module B4 — Restock Queue (Implemented ✅)
 
 - ✅ **Automatic Queue Management** - Products auto-added when low stock
@@ -74,9 +91,8 @@ This project follows the Software Requirements Specification (SRS) document for 
 - ✅ **Smart Re-evaluation** - Auto-remove when stock sufficient
 - ✅ **Ordered Listing** - Lowest stock products first
 
-### Coming Soon (SRS Modules B3, B5-B7)
+### Coming Soon (SRS Modules B5-B7)
 
-- 🔄 Order Processing with stock deduction
 - 🔄 Activity Logging (audit trail)
 - 🔄 Dashboard Statistics & Analytics
 - 🔄 Production Deployment Configuration
@@ -807,6 +823,378 @@ curl -X DELETE http://localhost:8000/api/categories/<CATEGORY_UUID>/ \
 6. **Optimized Queries** - Select/prefetch related for performance
 7. **Low Stock Detection** - Computed property for stock alerts
 8. **Delete Protection** - Categories cannot be deleted if products exist
+
+## 📦 Module B3 — Orders (Implemented ✅)
+
+This module implements a complete order management system with multi-item support, automatic stock deduction, and comprehensive status lifecycle management.
+
+### Order Model
+
+Orders represent customer purchases with automatic order number generation and status tracking:
+
+| Field           | Type         | Description                                    |
+| --------------- | ------------ | ---------------------------------------------- |
+| `id`            | UUID         | Primary key (UUID4)                            |
+| `order_number`  | CharField    | Auto-generated: `ORD-{YYYYMMDD}-{4-digit-seq}` |
+| `customer_name` | CharField    | Customer name (max 200 characters)             |
+| `status`        | CharField    | Order status (lifecycle managed)               |
+| `total_price`   | DecimalField | Total order price (computed from items)        |
+| `created_by`    | FK User      | User who created the order                     |
+| `created_at`    | DateTime     | Timestamp when order was created               |
+| `updated_at`    | DateTime     | Timestamp when order was last updated          |
+
+**Order Status Lifecycle:**
+
+```
+pending    → confirmed | cancelled
+confirmed  → shipped   | cancelled
+shipped    → delivered
+delivered  → (terminal — no further changes)
+cancelled  → (terminal — no further changes)
+```
+
+**Automatic Order Number Generation:**
+
+Order numbers follow the format `ORD-{YYYYMMDD}-{####}` where:
+
+- `YYYYMMDD` is the current date (e.g., 20250610)
+- `####` is a zero-padded 4-digit daily sequence (resets each day)
+- Example: `ORD-20250610-0023`
+
+### OrderItem Model
+
+Order items represent individual products within an order:
+
+| Field        | Type         | Description                     |
+| ------------ | ------------ | ------------------------------- |
+| `id`         | UUID         | Primary key (UUID4)             |
+| `order`      | FK Order     | The order this item belongs to  |
+| `product`    | FK Product   | The product being ordered       |
+| `quantity`   | Integer      | Quantity ordered (min 1)        |
+| `unit_price` | DecimalField | Price snapshot at order time    |
+| `subtotal`   | DecimalField | Computed: quantity × unit_price |
+
+**Features:**
+
+- ✅ Price snapshot — captures product price at time of order
+- ✅ Unique constraint — prevents duplicate products in same order
+- ✅ Automatic subtotal calculation
+- ✅ Protected deletion — product cannot be deleted if in orders
+
+### Order API Endpoints
+
+All order endpoints are prefixed with `/api/orders/`:
+
+| Method | Endpoint                   | Auth Required | Description                      |
+| ------ | -------------------------- | ------------- | -------------------------------- |
+| GET    | `/api/orders/`             | Yes           | List orders with filtering       |
+| POST   | `/api/orders/`             | Yes           | Create order with items (atomic) |
+| GET    | `/api/orders/{id}/`        | Yes           | Get order detail with all items  |
+| PATCH  | `/api/orders/{id}/status/` | Yes           | Update order status              |
+| POST   | `/api/orders/{id}/cancel/` | Yes           | Cancel order and restore stock   |
+
+**Order List Query Parameters:**
+
+| Parameter  | Type   | Description                     | Example                 |
+| ---------- | ------ | ------------------------------- | ----------------------- |
+| `status`   | string | Filter by status                | `?status=pending`       |
+| `search`   | string | Search customer name or order # | `?search=John`          |
+| `ordering` | string | Order results                   | `?ordering=-created_at` |
+
+**Status Filter Values:**
+
+- `pending` - Pending orders
+- `confirmed` - Confirmed orders
+- `shipped` - Shipped orders
+- `delivered` - Delivered orders
+- `cancelled` - Cancelled orders
+
+### Order Creation (Atomic Transaction)
+
+Create an order with multiple items in a single atomic transaction. If any validation fails, the entire order creation is rolled back.
+
+**POST** `/api/orders/`
+
+**Request Body:**
+
+```json
+{
+  "customer_name": "John Doe",
+  "items": [
+    {
+      "product_id": "550e8400-e29b-41d4-a716-446655440000",
+      "quantity": 2
+    },
+    {
+      "product_id": "550e8400-e29b-41d4-a716-446655440001",
+      "quantity": 1
+    }
+  ]
+}
+```
+
+**Success Response (201 Created):**
+
+```json
+{
+  "id": "650e8400-e29b-41d4-a716-446655440000",
+  "order_number": "ORD-20250610-0023",
+  "customer_name": "John Doe",
+  "status": "pending",
+  "total_price": "2997.00",
+  "created_at": "2025-06-10T10:00:00Z",
+  "updated_at": "2025-06-10T10:00:00Z",
+  "items": [
+    {
+      "id": "750e8400-e29b-41d4-a716-446655440000",
+      "product": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "iPhone 13"
+      },
+      "quantity": 2,
+      "unit_price": "999.00",
+      "subtotal": "1998.00"
+    },
+    {
+      "id": "750e8400-e29b-41d4-a716-446655440001",
+      "product": {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "name": "MacBook Pro"
+      },
+      "quantity": 1,
+      "unit_price": "999.00",
+      "subtotal": "999.00"
+    }
+  ]
+}
+```
+
+### Order Creation Logic
+
+The order creation process includes comprehensive validation and automatic actions:
+
+1. **Validate Items** - At least one item required
+2. **Duplicate Check** - No duplicate products in the same order
+3. **Product Validation** - All products must exist and be active
+4. **Stock Validation** - Sufficient stock available for each item
+5. **Generate Order Number** - Automatic unique order number
+6. **Create Order** - Create order with pending status
+7. **Create Items** - Create all order items
+8. **Snapshot Prices** - Capture current product prices
+9. **Deduct Stock** - Reduce product stock quantities
+10. **Compute Total** - Calculate total order price
+11. **Update Restock Queue** - Check and update restock queue if needed
+
+**All operations happen in an atomic transaction** — if any step fails, everything is rolled back.
+
+### Order List Response
+
+**GET** `/api/orders/`
+
+```json
+{
+  "count": 25,
+  "next": "http://localhost:8000/api/orders/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": "650e8400-e29b-41d4-a716-446655440000",
+      "order_number": "ORD-20250610-0023",
+      "customer_name": "John Doe",
+      "status": "pending",
+      "total_price": "2997.00",
+      "item_count": 2,
+      "created_at": "2025-06-10T10:00:00Z"
+    }
+  ]
+}
+```
+
+### Order Detail Response
+
+**GET** `/api/orders/{id}/`
+
+Returns full order details including all items with nested product information.
+
+### Update Order Status
+
+Update the order status following the lifecycle rules.
+
+**PATCH** `/api/orders/{id}/status/`
+
+**Request Body:**
+
+```json
+{
+  "status": "confirmed"
+}
+```
+
+**Success Response (200 OK):**
+
+Returns full order detail with updated status.
+
+**Validation:**
+
+- Status transition must be valid according to lifecycle rules
+- Terminal states (delivered, cancelled) cannot be changed
+
+### Cancel Order and Restore Stock
+
+Cancel an order and automatically restore stock for all items.
+
+**POST** `/api/orders/{id}/cancel/`
+
+**Success Response (200 OK):**
+
+```json
+{
+  "message": "Order cancelled successfully. Stock restored for all items.",
+  "order": {
+    "id": "650e8400-e29b-41d4-a716-446655440000",
+    "order_number": "ORD-20250610-0023",
+    "customer_name": "John Doe",
+    "status": "cancelled",
+    "total_price": "2997.00",
+    "created_at": "2025-06-10T10:00:00Z",
+    "updated_at": "2025-06-10T10:05:00Z",
+    "items": [...]
+  }
+}
+```
+
+**Cancellation Logic:**
+
+1. Validate status transition (must be cancellable)
+2. Restore stock quantity for each item
+3. Trigger product status updates (e.g., out_of_stock → active)
+4. Update restock queue if needed
+5. Set order status to cancelled
+
+### Validation Rules (Module B3)
+
+**Order Creation Validation:**
+
+- ✅ At least one item required
+- ✅ No duplicate products in order
+- ✅ All products must exist
+- ✅ All products must have `status = active`
+- ✅ Sufficient stock for each item
+- ✅ Quantity must be at least 1
+
+**Status Transition Validation:**
+
+- ✅ Must follow valid lifecycle transitions
+- ✅ Cannot modify terminal states (delivered, cancelled)
+- ✅ Cannot cancel delivered orders
+
+**Error Response Examples:**
+
+```json
+// Duplicate product in order
+{
+  "items": ["Product 'iPhone 13' is already added to this order."]
+}
+
+// Product unavailable
+{
+  "items": ["Product 'iPhone 13' is currently unavailable."]
+}
+
+// Insufficient stock
+{
+  "items": ["Only 3 item(s) available for 'iPhone 13'."]
+}
+
+// Invalid status transition
+{
+  "detail": "Cannot transition from 'delivered' to 'cancelled'. Invalid status transition."
+}
+```
+
+### Quick Test - Orders (Module B3)
+
+Test the Order endpoints using curl:
+
+**1. Create an Order:**
+
+```bash
+curl -X POST http://localhost:8000/api/orders/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_name": "John Doe",
+    "items": [
+      {"product_id": "<PRODUCT_UUID>", "quantity": 2},
+      {"product_id": "<PRODUCT_UUID_2>", "quantity": 1}
+    ]
+  }'
+```
+
+**2. List Orders:**
+
+```bash
+# List all orders
+curl -X GET http://localhost:8000/api/orders/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+
+# Filter by status
+curl -X GET "http://localhost:8000/api/orders/?status=pending" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+
+# Search by customer name
+curl -X GET "http://localhost:8000/api/orders/?search=John" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**3. Get Order Detail:**
+
+```bash
+curl -X GET http://localhost:8000/api/orders/<ORDER_UUID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**4. Update Order Status:**
+
+```bash
+curl -X PATCH http://localhost:8000/api/orders/<ORDER_UUID>/status/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"status": "confirmed"}'
+```
+
+**5. Cancel Order:**
+
+```bash
+curl -X POST http://localhost:8000/api/orders/<ORDER_UUID>/cancel/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+# Stock is automatically restored for all items
+```
+
+### Module B3 Implementation Details
+
+**Git Commit:** `feat(orders): order CRUD, stock deduction, status lifecycle`
+
+**Files Created:**
+
+- `orders/models.py` - Order and OrderItem models with lifecycle management
+- `orders/serializers.py` - Comprehensive serializers with validation
+- `orders/views.py` - OrderViewSet with custom actions
+- `orders/urls.py` - API routing for orders
+- `orders/admin.py` - Django admin with inline items display
+
+**Key Features:**
+
+1. **Atomic Transactions** - All-or-nothing order creation
+2. **Automatic Order Numbers** - Daily sequence with date prefix
+3. **Stock Validation** - Prevent overselling with comprehensive checks
+4. **Automatic Stock Deduction** - Real-time inventory updates
+5. **Status Lifecycle** - Enforced transition rules
+6. **Price Snapshots** - Historical pricing preservation
+7. **Stock Restoration** - Automatic when order is cancelled
+8. **Restock Queue Integration** - Auto-update queue after stock changes
+9. **Duplicate Prevention** - Unique constraint on order-product pairs
+10. **Optimized Queries** - Select/prefetch related for performance
 
 ## 📦 Module B4 — Restock Queue (Implemented ✅)
 

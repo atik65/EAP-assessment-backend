@@ -39,6 +39,9 @@ urlpatterns = [
     # Main API - Products app
     path('', include('products.urls')),
     
+    # Orders API - Module B3
+    path('api/', include('orders.urls')),
+    
     # Web API (public access - no authentication)
     path('web/', include('web_api.urls')),
     
