@@ -27,7 +27,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-&&4s4b)j*_+@=&-_#f&vbe7$+6-jd7m@1ub_ngqm%jd@8os$e7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+
+debug_env = os.getenv('DEBUG', 'True')
+DEBUG = debug_env.lower() in ('true', '1', 't')
 
 ALLOWED_HOSTS = ['*']
 
@@ -268,8 +271,8 @@ LOGGING = {
     'handlers': {
         'file': {
             'level': 'INFO',
-            # 'class': 'logging.FileHandler',
-            'class': 'logging.StreamHandler',  # For demonstration, using StreamHandler instead of FileHandler
+            'class': 'logging.FileHandler',
+            # 'class': 'logging.StreamHandler',  # For demonstration, using StreamHandler instead of FileHandler
             'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
             'formatter': 'verbose',
         },
