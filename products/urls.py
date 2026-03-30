@@ -1,28 +1,36 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,
-)
 from . import views
+
+# =============================================================================
+# API ROUTER CONFIGURATION — Module B2
+# =============================================================================
 
 # Create a router and register viewsets
 router = DefaultRouter()
-router.register(r'examples', views.ExampleModelViewSet, basename='example')
 
-# The API URLs are determined automatically by the router
+# Register Category and Product ViewSets
+router.register(r'categories', views.CategoryViewSet, basename='category')
+router.register(r'products', views.ProductViewSet, basename='product')
+
+# =============================================================================
+# URL PATTERNS
+# =============================================================================
+
 urlpatterns = [
-    # API endpoints
+    # Include all router-generated URLs
+    # This creates the following endpoints:
+    # - GET    /api/categories/          - List all categories
+    # - POST   /api/categories/          - Create a category
+    # - GET    /api/categories/{id}/     - Get category details
+    # - PATCH  /api/categories/{id}/     - Update category
+    # - DELETE /api/categories/{id}/     - Delete category
+    # 
+    # - GET    /api/products/            - List all products
+    # - POST   /api/products/            - Create a product
+    # - GET    /api/products/{id}/       - Get product details
+    # - PATCH  /api/products/{id}/       - Update product
+    # - DELETE /api/products/{id}/       - Archive product (soft delete)
     path('api/', include(router.urls)),
-    
-    # JWT Authentication endpoints
-    path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    
-    # Custom API endpoints
-    path('api/health/', views.health_check, name='health_check'),
-    path('api/statistics/', views.get_statistics, name='get_statistics'),
 ]
 

@@ -203,8 +203,8 @@ CSRF_TRUSTED_ORIGINS = [
 
 # DRF Spectacular settings
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Project Name API',
-    'DESCRIPTION': 'API for Project Name',
+    'TITLE': 'Smart Inventory & Order Management System API',
+    'DESCRIPTION': 'API for Smart Inventory & Order Management System',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
@@ -221,8 +221,8 @@ SPECTACULAR_SETTINGS = {
 
 # Django Unfold admin settings
 UNFOLD = {
-    "SITE_TITLE": "Project Name Admin",
-    "SITE_HEADER": "Project Name Administration",
+    "SITE_TITLE": "Smart Inventory & Order Management System Admin",
+    "SITE_HEADER": "Smart Inventory & Order Management System Administration",
     "SITE_SYMBOL": "speed",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,

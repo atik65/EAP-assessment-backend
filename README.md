@@ -15,7 +15,13 @@ This project follows the Software Requirements Specification (SRS) document for 
 |        | ├─ Login & Token Refresh                | ✅              |
 |        | ├─ Current User Profile                 | ✅              |
 |        | └─ Demo User Seeding                    | ✅              |
-| **B2** | **Categories & Products**               | 🔄 Pending      |
+| **B2** | **Categories & Products**               | ✅ **Complete** |
+|        | ├─ Category Model & CRUD                | ✅              |
+|        | ├─ Product Model with Auto-Status       | ✅              |
+|        | ├─ Product Filtering & Search           | ✅              |
+|        | ├─ Stock Status Management              | ✅              |
+|        | ├─ Low Stock Detection                  | ✅              |
+|        | └─ Soft Delete (Archiving)              | ✅              |
 | **B3** | **Orders**                              | 🔄 Pending      |
 | **B4** | **Restock Queue**                       | 🔄 Pending      |
 | **B5** | **Activity Log**                        | 🔄 Pending      |
@@ -45,9 +51,18 @@ This project follows the Software Requirements Specification (SRS) document for 
 - **Logging** - Comprehensive logging configuration
 - **Atomic Transactions** - Database integrity for complex operations
 
-### Coming Soon (SRS Modules B2-B7)
+### Module B2 — Categories & Products (Implemented ✅)
 
-- 🔄 Categories & Products Management with auto-status
+- ✅ **Category Management** - Full CRUD operations
+- ✅ **Product Management** - Complete inventory control
+- ✅ **Automatic Status Management** - Auto-update based on stock
+- ✅ **Advanced Filtering** - Filter by status, category, search
+- ✅ **Low Stock Detection** - Automatic threshold monitoring
+- ✅ **Soft Delete** - Archive products while preserving history
+- ✅ **Validation** - Comprehensive input validation
+
+### Coming Soon (SRS Modules B3-B7)
+
 - 🔄 Order Processing with stock deduction
 - 🔄 Restock Queue with priority management
 - 🔄 Activity Logging (audit trail)
@@ -437,7 +452,351 @@ REST_FRAMEWORK = {
 
 **Important:** All API endpoints require authentication by default unless explicitly marked with `permission_classes = [AllowAny]`.
 
-## 🔧 Configuration
+## � Module B2 — Categories & Products (Implemented ✅)
+
+This project implements a complete inventory management system with automatic status management and comprehensive filtering.
+
+### Category Model
+
+Categories organize products into logical groups:
+
+| Field        | Type      | Description                               |
+| ------------ | --------- | ----------------------------------------- |
+| `id`         | UUID      | Primary key (UUID4)                       |
+| `name`       | CharField | Unique category name (max 100 characters) |
+| `created_by` | FK User   | User who created the category             |
+| `created_at` | DateTime  | Timestamp when category was created       |
+
+**Features:**
+
+- ✅ Unique category names
+- ✅ Automatic product count tracking
+- ✅ Delete protection (prevents deletion if products exist)
+
+### Product Model
+
+Products represent inventory items with automatic status management:
+
+| Field                 | Type         | Description                                |
+| --------------------- | ------------ | ------------------------------------------ |
+| `id`                  | UUID         | Primary key (UUID4)                        |
+| `name`                | CharField    | Product name (max 200 characters)          |
+| `category`            | FK Category  | Product category                           |
+| `price`               | DecimalField | Product price (2 decimal places, min 0)    |
+| `stock_quantity`      | IntegerField | Current stock level (min 0)                |
+| `min_stock_threshold` | IntegerField | Minimum stock threshold for alerts (min 0) |
+| `status`              | CharField    | Product status (auto-managed)              |
+| `created_by`          | FK User      | User who created the product               |
+| `created_at`          | DateTime     | Timestamp when product was created         |
+| `updated_at`          | DateTime     | Timestamp when product was last updated    |
+
+**Product Status (Auto-Managed):**
+
+- `active` - Product is available with stock > 0
+- `out_of_stock` - Stock quantity has reached 0
+- `archived` - Product is soft-deleted (preserved for history)
+
+**Automatic Status Management:**
+The product model automatically manages status based on stock quantity:
+
+```python
+# When stock reaches 0
+stock_quantity == 0  →  status = 'out_of_stock'
+
+# When stock is replenished
+stock_quantity > 0 AND status == 'out_of_stock'  →  status = 'active'
+```
+
+**Computed Properties:**
+
+- `is_low_stock` - Returns `True` if `stock_quantity < min_stock_threshold`
+
+### Category API Endpoints
+
+All category endpoints are prefixed with `/api/categories/`:
+
+| Method | Endpoint                | Auth Required | Description                               |
+| ------ | ----------------------- | ------------- | ----------------------------------------- |
+| GET    | `/api/categories/`      | Yes           | List all categories with product counts   |
+| POST   | `/api/categories/`      | Yes           | Create a new category                     |
+| GET    | `/api/categories/{id}/` | Yes           | Get category details                      |
+| PATCH  | `/api/categories/{id}/` | Yes           | Update category name                      |
+| DELETE | `/api/categories/{id}/` | Yes           | Delete category (fails if products exist) |
+
+**Category List Response:**
+
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Electronics",
+    "created_by": "550e8400-e29b-41d4-a716-446655440001",
+    "created_by_email": "user@example.com",
+    "product_count": 15,
+    "created_at": "2025-06-10T10:00:00Z"
+  }
+]
+```
+
+**Create Category Request:**
+
+```json
+{
+  "name": "Electronics"
+}
+```
+
+### Product API Endpoints
+
+All product endpoints are prefixed with `/api/products/`:
+
+| Method | Endpoint              | Auth Required | Description                   |
+| ------ | --------------------- | ------------- | ----------------------------- |
+| GET    | `/api/products/`      | Yes           | List products with filtering  |
+| POST   | `/api/products/`      | Yes           | Create a new product          |
+| GET    | `/api/products/{id}/` | Yes           | Get product details           |
+| PATCH  | `/api/products/{id}/` | Yes           | Update product fields         |
+| DELETE | `/api/products/{id}/` | Yes           | Archive product (soft delete) |
+
+**Product List Query Parameters:**
+
+| Parameter  | Type   | Description            | Example            |
+| ---------- | ------ | ---------------------- | ------------------ |
+| `status`   | string | Filter by status       | `?status=active`   |
+| `category` | UUID   | Filter by category ID  | `?category={uuid}` |
+| `search`   | string | Search in product name | `?search=iPhone`   |
+| `ordering` | string | Order results          | `?ordering=-price` |
+
+**Status Filter Values:**
+
+- `active` - Only active products
+- `out_of_stock` - Only out of stock products
+- `archived` - Only archived products
+
+**Ordering Options:**
+
+- `name` - Sort by name (A-Z)
+- `-name` - Sort by name (Z-A)
+- `price` - Sort by price (low to high)
+- `-price` - Sort by price (high to low)
+- `stock_quantity` - Sort by stock (low to high)
+- `-stock_quantity` - Sort by stock (high to low)
+- `created_at` - Sort by creation date (oldest first)
+- `-created_at` - Sort by creation date (newest first)
+
+**Product List Response:**
+
+```json
+{
+  "count": 25,
+  "next": "http://localhost:8000/api/products/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "iPhone 13",
+      "category": {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "name": "Electronics"
+      },
+      "price": "999.00",
+      "stock_quantity": 3,
+      "min_stock_threshold": 5,
+      "status": "active",
+      "is_low_stock": true,
+      "created_at": "2025-06-10T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Product Detail Response:**
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "iPhone 13",
+  "category": {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "name": "Electronics"
+  },
+  "price": "999.00",
+  "stock_quantity": 3,
+  "min_stock_threshold": 5,
+  "status": "active",
+  "is_low_stock": true,
+  "created_by": "550e8400-e29b-41d4-a716-446655440002",
+  "created_by_email": "user@example.com",
+  "created_at": "2025-06-10T10:00:00Z",
+  "updated_at": "2025-06-10T12:00:00Z"
+}
+```
+
+**Create Product Request:**
+
+```json
+{
+  "name": "iPhone 13",
+  "category": "550e8400-e29b-41d4-a716-446655440001",
+  "price": "999.00",
+  "stock_quantity": 10,
+  "min_stock_threshold": 5
+}
+```
+
+**Update Product Request (Partial):**
+
+```json
+{
+  "stock_quantity": 20,
+  "price": "899.00"
+}
+```
+
+**Note:** Status is automatically managed based on stock quantity. You cannot manually set the status field.
+
+### Validation Rules (Module B2)
+
+**Category Validation:**
+
+- ✅ Name must be unique (case-sensitive)
+- ✅ Name cannot be empty or exceed 100 characters
+- ✅ Cannot delete category if products exist
+
+**Product Validation:**
+
+- ✅ All fields are required on creation
+- ✅ Price must be non-negative (>= 0)
+- ✅ Stock quantity must be non-negative (>= 0)
+- ✅ Minimum stock threshold must be non-negative (>= 0)
+- ✅ Category must exist and be valid
+- ✅ Cannot update archived products (must restore first)
+- ✅ Status is automatically managed (cannot be manually set)
+
+**Error Response Examples:**
+
+```json
+// Invalid price
+{
+  "price": ["Price must be non-negative."]
+}
+
+// Category with products cannot be deleted
+{
+  "detail": "Cannot delete category 'Electronics' because it has 15 product(s). Remove or reassign the products first."
+}
+
+// Cannot update archived product
+{
+  "detail": "Cannot update archived products. Restore the product first."
+}
+```
+
+### Quick Test - Categories & Products (Module B2)
+
+Test the Category and Product endpoints using curl:
+
+**1. Create a Category:**
+
+```bash
+curl -X POST http://localhost:8000/api/categories/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Electronics"
+  }'
+```
+
+**2. List Categories:**
+
+```bash
+curl -X GET http://localhost:8000/api/categories/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**3. Create a Product:**
+
+```bash
+curl -X POST http://localhost:8000/api/products/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "iPhone 13",
+    "category": "<CATEGORY_UUID>",
+    "price": "999.00",
+    "stock_quantity": 10,
+    "min_stock_threshold": 5
+  }'
+```
+
+**4. List Products with Filters:**
+
+```bash
+# List all active products
+curl -X GET "http://localhost:8000/api/products/?status=active" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+
+# Search for products
+curl -X GET "http://localhost:8000/api/products/?search=iPhone" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+
+# Filter by category and order by price
+curl -X GET "http://localhost:8000/api/products/?category=<UUID>&ordering=-price" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+**5. Update Product Stock:**
+
+```bash
+curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "stock_quantity": 0
+  }'
+# Status automatically changes to 'out_of_stock'
+```
+
+**6. Archive a Product:**
+
+```bash
+curl -X DELETE http://localhost:8000/api/products/<PRODUCT_UUID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+# Product is soft-deleted (status = archived)
+```
+
+**7. Try to Delete Category with Products:**
+
+```bash
+curl -X DELETE http://localhost:8000/api/categories/<CATEGORY_UUID>/ \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+# Returns 400 error if products exist
+```
+
+### Module B2 Implementation Details
+
+**Git Commit:** `feat(products): category & product CRUD, status auto-management`
+
+**Files Modified/Created:**
+
+- `products/models.py` - Category and Product models with auto-status logic
+- `products/serializers.py` - All category and product serializers
+- `products/views.py` - CategoryViewSet and ProductViewSet with filtering
+- `products/urls.py` - API routing for categories and products
+- `products/admin.py` - Django admin configuration with visual indicators
+
+**Key Features:**
+
+1. **UUID Primary Keys** - All models use UUIDs for better security
+2. **Automatic Status Management** - Products auto-update status based on stock
+3. **Soft Delete** - Products are archived instead of deleted
+4. **Comprehensive Filtering** - Advanced query parameters for product listing
+5. **Validation** - Input validation at serializer and model levels
+6. **Optimized Queries** - Select/prefetch related for performance
+7. **Low Stock Detection** - Computed property for stock alerts
+8. **Delete Protection** - Categories cannot be deleted if products exist
+
+## �🔧 Configuration
 
 ### Django Settings
 
