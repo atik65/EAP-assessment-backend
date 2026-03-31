@@ -255,6 +255,10 @@ The system uses a custom User model that extends Django's `AbstractUser`:
 - Email is used as the primary authentication field
 - All user IDs are UUIDs instead of integers for better security
 
+### HTTP Only Cookie Based Authentication
+The complete specification is available in [HTTP_COOKIE_AUTHENTICATION](HTTP_COOKIE_AUTH.md).
+
+
 ### JWT Token Authentication
 
 The system uses `djangorestframework-simplejwt` for JWT token authentication:

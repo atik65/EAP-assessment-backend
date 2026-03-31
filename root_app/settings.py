@@ -172,7 +172,8 @@ AUTH_USER_MODEL = 'accounts.User'
 # Django REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'accounts.authentication.CookieJWTAuthentication',  # HTTP-only cookie auth
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # Header-based auth
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
