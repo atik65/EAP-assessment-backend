@@ -213,8 +213,13 @@ SIMPLE_JWT = {
 # CORS settings
 # Allow frontend origin (React dev server)
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
+    'http://localhost:3000',  # Common React port
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',  # Vite default port
     'http://127.0.0.1:5173',
+
+    'http://localhost:9000',  # Vite custom port
+    'http://127.0.0.1:9000',
 ]
 CORS_ALLOW_CREDENTIALS = True
 
