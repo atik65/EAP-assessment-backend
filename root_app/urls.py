@@ -47,6 +47,9 @@ urlpatterns = [
     
     # Admin API (authentication required)
     path('admin-api/', include('admin_api.urls')),
+    
+    # Activity Log - Module B5
+    path('api/activity/', include('activity.urls')),
 ]
 
 # Serve media files during development

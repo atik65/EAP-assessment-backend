@@ -36,14 +36,17 @@ This project follows the Software Requirements Specification (SRS) document for 
 |        | ├─ Priority Calculation (High/Med/Low)   | ✅              |
 |        | ├─ Manual Restock Endpoint               | ✅              |
 |        | └─ Queue Listing & Removal               | ✅              |
-| **B5** | **Activity Log**                         | 🔄 Pending      |
+| **B5** | **Activity Log**                         | ✅ **Complete** |
+|        | ├─ Immutable Audit Trail                 | ✅              |
+|        | ├─ Automatic Event Triggers              | ✅              |
+|        | └─ Latest 50 Entries Endpoint            | ✅              |
 | **B6** | **Dashboard Stats**                      | ✅ **Complete** |
 |        | ├─ Dashboard KPI Aggregation             | ✅              |
 |        | ├─ Order Metrics (Today/Pending/Done)    | ✅              |
 |        | ├─ Revenue Calculation                   | ✅              |
 |        | ├─ Low Stock Count                       | ✅              |
 |        | └─ Product Summary with Status           | ✅              |
-| **B7** | **Deployment**                           | 🔄 Pending      |
+| **B7** | **Deployment**                           | ✅ **Complete**      |
 
 ## 🚀 Features
 
@@ -104,9 +107,7 @@ This project follows the Software Requirements Specification (SRS) document for 
 - ✅ Low stock alerts
 - ✅ Product summary with status
 
-### Coming Soon (SRS Modules B5 & B7)
-
-- 🔄 Activity Logging (audit trail)
+### Coming Soon (SRS Module B7)
 - 🔄 Production Deployment Configuration
 
 ## 📁 Project Structure
@@ -1546,6 +1547,63 @@ curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
 7. **Cached Stock** - Performance optimization with denormalized stock_quantity
 8. **Admin Color Coding** - Visual priority indicators (🔴 High, 🟠 Medium, 🔵 Low)
 
+## 🪵 Module B5 — Activity Log (Implemented ✅)
+
+### Overview
+Module B5 implements an immutable, append-only audit trail that automatically logs critical system events.
+
+**Git commit:** `feat(activity): activity log model and endpoint`
+
+### Activity Log Model
+The `ActivityLog` model captures context about system actions:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | UUID | Primary key (UUID4) |
+| `action` | CharField | Human-readable description of the event |
+| `performed_by` | FK User | User who performed the action (NULL for system events) |
+| `timestamp` | DateTime | Automatic timestamp of the event |
+| `entity_type` | CharField | Type of entity: `order`, `product`, `restock`, `auth` |
+| `entity_id` | UUID | Optional ID of the related entity |
+
+### Log Entry Formats
+The system automatically generates logs for the following triggers:
+
+| Trigger | Message Format |
+|---|---|
+| Order Created | `Order #ORD-XXX created by {username}` |
+| Status Change | `Order #ORD-XXX marked as {status}` |
+| Order Cancelled | `Order #ORD-XXX cancelled by {username}` |
+| Product Created | `Product '{name}' created by {username}` |
+| Product Updated | `Product '{name}' updated by {username}` |
+| Manual Restock | `Stock updated for '{name}' (+{qty} units)` |
+| Restock Queue | `Product '{name}' added to Restock Queue` |
+
+### API Endpoint
+**GET** `/api/activity/`
+
+Returns the **latest 50 entries**, newest first, with no pagination for a quick audit overview.
+
+**Success Response (200 OK):**
+```json
+[
+  {
+    "id": "uuid",
+    "action": "Order #ORD-20260401-0001 created by admin",
+    "performed_by": "uuid",
+    "performed_by_name": "admin",
+    "timestamp": "2026-04-01T14:30:00Z",
+    "entity_type": "order",
+    "entity_id": "uuid"
+  }
+]
+```
+
+### Key Features:
+1. **Immutable Trail** - Logs cannot be manually created, updated, or deleted via the API or Admin UI (read-only enforced).
+2. **Automatic Triggers** - Hooked into ViewSet actions and Model hooks.
+3. **Context Rich** - Tracks the responsible user and links to specific entities.
+
 ## 📊 Module B6 — Dashboard Stats (Implemented ✅)
 
 ### Overview
@@ -1789,6 +1847,10 @@ drf-spectacular>=0.27
 - `GET /api/restock/{id}/` - Get restock queue entry (auth required)
 - `POST /api/restock/{id}/restock/` - Restock product (auth required)
 - `DELETE /api/restock/{id}/` - Remove from queue (auth required)
+
+**Activity Log (Module B5):**
+
+- `GET /api/activity/` - Latest 50 activity logs (auth required)
 
 **Dashboard Stats (Module B6):**
 

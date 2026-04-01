@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from activity.models import ActivityLog
 
 User = get_user_model()
 
@@ -285,6 +286,14 @@ def check_restock_queue(product):
         if should_be_in_queue:
             # Add to queue - stock is below threshold
             queue_entry = RestockQueue.objects.create(product=product)
+            
+            # Module B5 — Activity Log
+            ActivityLog.log(
+                action=f"Product '{product.name}' added to Restock Queue",
+                entity_type='restock',
+                entity_id=product.id
+            )
+            
             return ('added', queue_entry)
         else:
             # Not in queue and shouldn't be - no change
