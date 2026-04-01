@@ -1,2113 +1,376 @@
-# Django REST Framework — Smart Inventory & Order Management System
+# 🏪 Smart Inventory & Order Management System
 
-A production-ready Django REST Framework backend for the Smart Inventory & Order Management System. This project implements a comprehensive inventory management API with JWT authentication, role-based access control, and real-time order processing.
+**A production-ready Django REST Framework API for managing inventory, orders, and stock operations**
 
-## 📋 Implementation Status
+[![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
+[![DRF](https://img.shields.io/badge/DRF-3.14-red.svg)](https://www.django-rest-framework.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-This project follows the Software Requirements Specification (SRS) document for the Smart Inventory & Order Management System.
+---
 
-| Module | Feature                                  | Status          |
-| ------ | ---------------------------------------- | --------------- |
-| **B1** | **Project Bootstrap & Authentication**   | ✅ **Complete** |
-|        | ├─ Custom User Model (UUID, Role-based)  | ✅              |
-|        | ├─ JWT Authentication                    | ✅              |
-|        | ├─ User Registration                     | ✅              |
-|        | ├─ Login & Token Refresh                 | ✅              |
-|        | ├─ Current User Profile                  | ✅              |
-|        | └─ Demo User Seeding                     | ✅              |
-| **B2** | **Categories & Products**                | ✅ **Complete** |
-|        | ├─ Category Model & CRUD                 | ✅              |
-|        | ├─ Product Model with Auto-Status        | ✅              |
-|        | ├─ Product Filtering & Search            | ✅              |
-|        | ├─ Stock Status Management               | ✅              |
-|        | ├─ Low Stock Detection                   | ✅              |
-|        | └─ Soft Delete (Archiving)               | ✅              |
-| **B3** | **Orders**                               | ✅ **Complete** |
-|        | ├─ Order & OrderItem Models              | ✅              |
-|        | ├─ Auto Order Number Generation          | ✅              |
-|        | ├─ Multi-Item Order Creation             | ✅              |
-|        | ├─ Automatic Stock Deduction             | ✅              |
-|        | ├─ Stock Validation & Conflict Check     | ✅              |
-|        | ├─ Status Lifecycle Management           | ✅              |
-|        | └─ Order Cancellation with Stock Restore | ✅              |
-| **B4** | **Restock Queue**                        | ✅ **Complete** |
-|        | ├─ RestockQueue Model                    | ✅              |
-|        | ├─ Auto Queue Management                 | ✅              |
-|        | ├─ Priority Calculation (High/Med/Low)   | ✅              |
-|        | ├─ Manual Restock Endpoint               | ✅              |
-|        | └─ Queue Listing & Removal               | ✅              |
-| **B5** | **Activity Log**                         | ✅ **Complete** |
-|        | ├─ Immutable Audit Trail                 | ✅              |
-|        | ├─ Automatic Event Triggers              | ✅              |
-|        | └─ Latest 50 Entries Endpoint            | ✅              |
-| **B6** | **Dashboard Stats**                      | ✅ **Complete** |
-|        | ├─ Dashboard KPI Aggregation             | ✅              |
-|        | ├─ Order Metrics (Today/Pending/Done)    | ✅              |
-|        | ├─ Revenue Calculation                   | ✅              |
-|        | ├─ Low Stock Count                       | ✅              |
-|        | └─ Product Summary with Status           | ✅              |
-| **B7** | **Deployment**                           | ✅ **Complete**      |
+## 📋 Overview
 
-## 🚀 Features
+A comprehensive REST API backend built with Django REST Framework that provides complete inventory and order management capabilities. Features include real-time stock tracking, automatic restock queue management, order processing with atomic transactions, and dashboard analytics.
 
-### Core Features (Implemented)
+**Perfect for:** E-commerce platforms, warehouse management, retail systems, or any business requiring robust inventory control.
 
-- ✅ **Django 5.2** - Latest Django framework
-- ✅ **Django REST Framework** - Powerful REST API toolkit
-- ✅ **JWT Authentication** - Simple JWT token authentication with refresh
-- ✅ **Custom User Model** - UUID-based with role field (admin/manager)
-- ✅ **Role-Based Access Control** - Admin and Manager roles
-- ✅ **CORS Headers** - Cross-Origin Resource Sharing support
-- ✅ **Django Filter** - Advanced filtering for REST API
-- ✅ **DRF Spectacular** - OpenAPI 3.0 schema generation and Swagger UI
-- ✅ **Django Unfold** - Modern admin interface
-- ✅ **Demo User Seeding** - Quick setup for testing
+---
 
-### Database & Infrastructure
+## ✨ Key Features
 
-- **SQLite** - Default database (development)
-- **PostgreSQL Ready** - Production database configuration
-- **Pagination** - 20 items per page by default
-- **Logging** - Comprehensive logging configuration
-- **Atomic Transactions** - Database integrity for complex operations
+### 🔐 Authentication & Authorization
+- **JWT-based authentication** with access & refresh tokens
+- **HTTP-only cookie support** for enhanced security
+- **Role-based access control** (Admin, Manager, Staff)
+- Custom user model with UUID primary keys
 
-### Module B2 — Categories & Products (Implemented ✅)
+### 📦 Product Management
+- Categories with product organization
+- **Automatic stock status** (Active/Out of Stock/Archived)
+- Low stock detection and alerts
+- Soft delete (archiving) for data retention
+- Advanced filtering and search
 
-- ✅ **Category Management** - Full CRUD operations
-- ✅ **Product Management** - Complete inventory control
-- ✅ **Automatic Status Management** - Auto-update based on stock
-- ✅ **Advanced Filtering** - Filter by status, category, search
-- ✅ **Low Stock Detection** - Automatic threshold monitoring
-- ✅ **Soft Delete** - Archive products while preserving history
-- ✅ **Validation** - Comprehensive input validation
+### 🛒 Order Processing
+- **Atomic transaction handling** for order creation
+- Auto-generated order numbers (`ORD-YYYYMMDD-####`)
+- Multi-item orders with quantity validation
+- **Automatic stock deduction** on order placement
+- Order lifecycle management (Pending → Confirmed → Shipped → Delivered)
+- **Stock restoration** on order cancellation
 
-### Module B3 — Orders (Implemented ✅)
+### 🔄 Smart Restock Queue
+- **Automatic queue management** based on stock thresholds
+- Priority calculation (High/Medium/Low)
+- Real-time stock monitoring
+- Manual restock operations with audit trail
+- Auto-removal when stock is sufficient
 
-- ✅ **Order Creation** - Multi-item orders in atomic transactions
-- ✅ **Automatic Order Numbers** - Format: ORD-{YYYYMMDD}-{####}
-- ✅ **Stock Validation** - Check availability before order creation
-- ✅ **Automatic Stock Deduction** - Reduce inventory on order placement
-- ✅ **Status Lifecycle** - pending → confirmed → shipped → delivered
-- ✅ **Order Cancellation** - Restore stock when order is cancelled
-- ✅ **Advanced Filtering** - Filter by status, date, customer search
+### 📊 Dashboard Analytics
+- Real-time KPI metrics (orders, revenue, stock status)
+- Today's order and revenue statistics
+- Low stock alerts and inventory health
+- Product status overview
+- Optimized aggregation queries
 
-### Module B4 — Restock Queue (Implemented ✅)
+### 🪵 Activity Logging
+- Comprehensive audit trail for all operations
+- User action tracking (Create/Update/Delete)
+- Entity-specific logging (Products, Orders, Categories)
+- Timestamp and user attribution
 
-- ✅ **Automatic Queue Management** - Products auto-added when low stock
-- ✅ **Priority Calculation** - High/Medium/Low based on stock levels
-- ✅ **Manual Restocking** - Add stock via API endpoint
-- ✅ **Smart Re-evaluation** - Auto-remove when stock sufficient
-- ✅ **Ordered Listing** - Lowest stock products first
+---
 
-### Module B6 — Dashboard Stats (Implemented ✅)
+## 🛠️ Tech Stack
 
-- ✅ Dashboard KPI aggregation endpoint
-- ✅ Order statistics (today, pending, completed)
-- ✅ Revenue calculations
-- ✅ Low stock alerts
-- ✅ Product summary with status
+**Backend Framework:**
+- Django 5.2
+- Django REST Framework 3.14
+- PostgreSQL / SQLite
 
-### Coming Soon (SRS Module B7)
-- 🔄 Production Deployment Configuration
+**Authentication:**
+- djangorestframework-simplejwt 5.3
+- HTTP-only cookie support
 
-## 📁 Project Structure
+**Additional Tools:**
+- django-cors-headers (CORS handling)
+- drf-spectacular (OpenAPI documentation)
+- django-filter (Advanced filtering)
 
-```
-backend/
-├── accounts/             # Authentication & User Management (Module B1)
-│   ├── models.py         # Custom User model with role field
-│   ├── serializers.py    # Register, Login, User serializers
-│   ├── views.py          # Register, Login, Current User views
-│   ├── urls.py           # Auth endpoints routing
-│   └── management/       # Management commands
-│       └── commands/
-│           └── seed_demo.py  # Demo user seeding
-├── products/              # Main API app with full CRUD examples
-│   ├── models.py         # Example model with timestamps
-│   ├── serializers.py    # Example serializers (list, detail, create)
-│   ├── views.py          # ViewSets and function-based views
-│   ├── urls.py           # API routing with JWT auth
-│   └── admin.py          # Django Unfold admin configuration
-├── web_api/              # Public API app (no authentication)
-│   ├── models.py         # Public-facing models
-│   ├── serializers.py    # Public serializers
-│   ├── views.py          # Public endpoints
-│   └── urls.py           # Public routing
-├── admin_api/            # Admin-only API app (requires auth)
-│   ├── models.py         # Admin-specific models
-│   ├── serializers.py    # Admin serializers
-│   ├── views.py          # Admin-only endpoints
-│   └── urls.py           # Admin routing
-├── root_app/             # Django project settings
-│   ├── settings.py       # Main configuration
-│   ├── urls.py           # Root URL configuration
-│   └── wsgi.py/asgi.py   # WSGI/ASGI applications
-├── manage.py             # Django management script
-└── requirements.txt      # Python dependencies
-```
+---
 
-## 🎯 Application Architecture
-
-### **accounts/** - Authentication & User Management (Module B1) ✅
-
-- **Custom User Model** with UUIDs and role-based access
-- **JWT Authentication** using djangorestframework-simplejwt
-- **User Registration** with email validation
-- **Login** with email/password authentication
-- **Token Management** (access & refresh tokens)
-- **Current User Profile** endpoint
-- **Demo User Seeding** for quick testing
-- **Role-Based Access Control** (Admin/Manager roles)
-
-### **products/** - Main API
-
-- Full CRUD operations with ViewSets
-- Example model with relationships
-- JWT authentication support
-- Filtering, searching, and ordering
-- Custom actions and endpoints
-
-### **web_api/** - Public API
-
-- No authentication required
-- Public-facing data
-- Read-only endpoints typically
-- Perfect for public content, blogs, etc.
-
-### **admin_api/** - Admin API
-
-- Authentication required
-- Admin-level permissions
-- Sensitive operations
-- Dashboard and statistics
-
-## 🛠️ Installation & Setup
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
 - pip
-- Virtual environment (recommended)
+- virtualenv (recommended)
 
-### Installation Steps
-
-1. **Clone the repository**
-
-   ```bash
-   git clone <repository-url>
-   cd backend
-   ```
-
-2. **Create virtual environment**
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run migrations**
-
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
-
-5. **Create demo user (optional)**
-
-   ```bash
-   python manage.py seed_demo
-   ```
-
-   This creates a test user: `demo@demo.com` / `demo1234`
-
-6. **Create superuser (optional)**
-
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-7. **Run development server**
-   ```bash
-   python manage.py runserver
-   ```
-
-The server will start at http://localhost:8000/
-
-## ?? API Documentation
-
-Once the server is running, access the API documentation at:
-
-- **Swagger UI**: http://localhost:8000/api/docs/
-- **ReDoc**: http://localhost:8000/api/redoc/
-- **OpenAPI Schema**: http://localhost:8000/api/schema/
-
-## 🔐 Module B1 — Authentication & User Management (Implemented ✅)
-
-This project implements a complete JWT-based authentication system with custom user model and role-based access control.
-
-### Custom User Model
-
-The system uses a custom User model that extends Django's `AbstractUser`:
-
-| Field      | Type       | Description                                          |
-| ---------- | ---------- | ---------------------------------------------------- |
-| `id`       | UUID       | Primary key (UUID4)                                  |
-| `email`    | EmailField | Unique, used as USERNAME_FIELD for authentication    |
-| `username` | CharField  | Kept for compatibility                               |
-| `role`     | CharField  | User role: `admin` or `manager` (default: `manager`) |
-
-**Configuration:**
-
-- `AUTH_USER_MODEL = 'accounts.User'` in settings.py
-- Email is used as the primary authentication field
-- All user IDs are UUIDs instead of integers for better security
-
-### HTTP Only Cookie Based Authentication
-The complete specification is available in [HTTP_COOKIE_AUTHENTICATION](HTTP_COOKIE_AUTH.md).
-
-
-### JWT Token Authentication
-
-The system uses `djangorestframework-simplejwt` for JWT token authentication:
-
-- **Access Token Lifetime:** 60 minutes
-- **Refresh Token Lifetime:** 7 days
-- **Token Rotation:** Enabled (new refresh token on each refresh)
-- **Auth Header:** `Authorization: Bearer <access_token>`
-
-### Authentication Endpoints
-
-All authentication endpoints are prefixed with `/api/auth/`:
-
-#### 1. Register User
-
-**POST** `/api/auth/register/`
-
-**Public endpoint** (no authentication required)
-
-**Request Body:**
-
-```json
-{
-  "email": "user@example.com",
-  "username": "john_doe", // Optional, auto-generated from email if not provided
-  "password": "securepass123",
-  "password2": "securepass123", // Confirmation password
-  "role": "manager" // Optional, defaults to "manager"
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "user": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "email": "user@example.com",
-    "username": "john_doe",
-    "role": "manager"
-  }
-}
-```
-
-**Error Responses:**
-
-```json
-// Email already exists (400 Bad Request)
-{
-  "email": ["A user with this email already exists."]
-}
-
-// Passwords don't match (400 Bad Request)
-{
-  "password": ["Password fields didn't match."]
-}
-```
-
-#### 2. Login
-
-**POST** `/api/auth/login/`
-
-**Public endpoint** (no authentication required)
-
-**Request Body:**
-
-```json
-{
-  "email": "user@example.com",
-  "password": "securepass123"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "user": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "email": "user@example.com",
-    "username": "john_doe",
-    "role": "manager"
-  }
-}
-```
-
-**Error Response (401 Unauthorized):**
-
-```json
-{
-  "detail": "Invalid email or password."
-}
-```
-
-#### 3. Token Refresh
-
-**POST** `/api/auth/token/refresh/`
-
-**Public endpoint** (no authentication required)
-
-Refresh an expired access token using a valid refresh token.
-
-**Request Body:**
-
-```json
-{
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..." // New refresh token (rotation enabled)
-}
-```
-
-#### 4. Current User Profile
-
-**GET** `/api/auth/me/`
-
-**Authenticated endpoint** (requires valid access token)
-
-Get the currently authenticated user's profile information.
-
-**Request Headers:**
-
-```
-Authorization: Bearer <access_token>
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "email": "user@example.com",
-  "username": "john_doe",
-  "role": "manager"
-}
-```
-
-**Error Response (401 Unauthorized):**
-
-```json
-{
-  "detail": "Authentication credentials were not provided."
-}
-```
-
-### Using JWT Tokens
-
-After successful login or registration, include the access token in the `Authorization` header for all authenticated requests:
+### Installation
 
 ```bash
-# Example using curl
-curl -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc..." \
-     http://localhost:8000/api/auth/me/
-```
+# Clone the repository
+git clone https://github.com/yourusername/eap-assessment-backend.git
+cd eap-assessment-backend
 
-```javascript
-// Example using fetch
-fetch("http://localhost:8000/api/auth/me/", {
-  headers: {
-    Authorization: "Bearer eyJ0eXAiOiJKV1QiLCJhbGc...",
-    "Content-Type": "application/json",
-  },
-});
-```
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-### Demo User
+# Install dependencies
+pip install -r requirements.txt
 
-For quick testing, a demo user is available:
+# Run migrations
+python manage.py migrate
 
-**Email:** `demo@demo.com`  
-**Password:** `demo1234`  
-**Role:** `manager`
-
-To create or reset the demo user, run:
-
-```bash
+# Create demo user (optional)
 python manage.py seed_demo
+
+# Start development server
+python manage.py runserver
 ```
 
-This command is **idempotent** — it's safe to run multiple times. If the user already exists, it will reset the password to `demo1234`.
+### 🔑 Demo Credentials
 
-### Validation Rules
-
-- **Email:** Must be unique and valid email format
-- **Password:** Minimum 8 characters (Django default validators)
-- **Passwords Match:** `password` and `password2` must match during registration
-- **Email Case-Insensitive:** Emails are stored as-is but searched case-insensitively
-
-### CORS Configuration
-
-The API is configured to accept requests from the following origins:
-
-- `http://localhost:5173` (React/Vite dev server)
-- `http://127.0.0.1:5173`
-
-CORS credentials are enabled for cookie/token handling.
-
-### REST Framework Configuration
-
-```python
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
-}
+```
+Email: demo@demo.com
+Password: demo1234
+Role: Admin
 ```
 
-**Important:** All API endpoints require authentication by default unless explicitly marked with `permission_classes = [AllowAny]`.
+---
 
-## � Module B2 — Categories & Products (Implemented ✅)
+## 🌐 Live Demo
 
-This project implements a complete inventory management system with automatic status management and comprehensive filtering.
+**Production API is live!** Try it out without any local setup:
 
-### Category Model
+**Base URL:** `https://eap-assessment-backend.onrender.com`
 
-Categories organize products into logical groups:
-
-| Field        | Type      | Description                               |
-| ------------ | --------- | ----------------------------------------- |
-| `id`         | UUID      | Primary key (UUID4)                       |
-| `name`       | CharField | Unique category name (max 100 characters) |
-| `created_by` | FK User   | User who created the category             |
-| `created_at` | DateTime  | Timestamp when category was created       |
-
-**Features:**
-
-- ✅ Unique category names
-- ✅ Automatic product count tracking
-- ✅ Delete protection (prevents deletion if products exist)
-
-### Product Model
-
-Products represent inventory items with automatic status management:
-
-| Field                 | Type         | Description                                |
-| --------------------- | ------------ | ------------------------------------------ |
-| `id`                  | UUID         | Primary key (UUID4)                        |
-| `name`                | CharField    | Product name (max 200 characters)          |
-| `category`            | FK Category  | Product category                           |
-| `price`               | DecimalField | Product price (2 decimal places, min 0)    |
-| `stock_quantity`      | IntegerField | Current stock level (min 0)                |
-| `min_stock_threshold` | IntegerField | Minimum stock threshold for alerts (min 0) |
-| `status`              | CharField    | Product status (auto-managed)              |
-| `created_by`          | FK User      | User who created the product               |
-| `created_at`          | DateTime     | Timestamp when product was created         |
-| `updated_at`          | DateTime     | Timestamp when product was last updated    |
-
-**Product Status (Auto-Managed):**
-
-- `active` - Product is available with stock > 0
-- `out_of_stock` - Stock quantity has reached 0
-- `archived` - Product is soft-deleted (preserved for history)
-
-**Automatic Status Management:**
-The product model automatically manages status based on stock quantity:
-
-```python
-# When stock reaches 0
-stock_quantity == 0  →  status = 'out_of_stock'
-
-# When stock is replenished
-stock_quantity > 0 AND status == 'out_of_stock'  →  status = 'active'
-```
-
-**Computed Properties:**
-
-- `is_low_stock` - Returns `True` if `stock_quantity < min_stock_threshold`
-
-### Category API Endpoints
-
-All category endpoints are prefixed with `/api/categories/`:
-
-| Method | Endpoint                | Auth Required | Description                               |
-| ------ | ----------------------- | ------------- | ----------------------------------------- |
-| GET    | `/api/categories/`      | Yes           | List all categories with product counts   |
-| POST   | `/api/categories/`      | Yes           | Create a new category                     |
-| GET    | `/api/categories/{id}/` | Yes           | Get category details                      |
-| PATCH  | `/api/categories/{id}/` | Yes           | Update category name                      |
-| DELETE | `/api/categories/{id}/` | Yes           | Delete category (fails if products exist) |
-
-**Category List Response:**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "Electronics",
-    "created_by": "550e8400-e29b-41d4-a716-446655440001",
-    "created_by_email": "user@example.com",
-    "product_count": 15,
-    "created_at": "2025-06-10T10:00:00Z"
-  }
-]
-```
-
-**Create Category Request:**
-
-```json
-{
-  "name": "Electronics"
-}
-```
-
-### Product API Endpoints
-
-All product endpoints are prefixed with `/api/products/`:
-
-| Method | Endpoint              | Auth Required | Description                   |
-| ------ | --------------------- | ------------- | ----------------------------- |
-| GET    | `/api/products/`      | Yes           | List products with filtering  |
-| POST   | `/api/products/`      | Yes           | Create a new product          |
-| GET    | `/api/products/{id}/` | Yes           | Get product details           |
-| PATCH  | `/api/products/{id}/` | Yes           | Update product fields         |
-| DELETE | `/api/products/{id}/` | Yes           | Archive product (soft delete) |
-
-**Product List Query Parameters:**
-
-| Parameter  | Type   | Description            | Example            |
-| ---------- | ------ | ---------------------- | ------------------ |
-| `status`   | string | Filter by status       | `?status=active`   |
-| `category` | UUID   | Filter by category ID  | `?category={uuid}` |
-| `search`   | string | Search in product name | `?search=iPhone`   |
-| `ordering` | string | Order results          | `?ordering=-price` |
-
-**Status Filter Values:**
-
-- `active` - Only active products
-- `out_of_stock` - Only out of stock products
-- `archived` - Only archived products
-
-**Ordering Options:**
-
-- `name` - Sort by name (A-Z)
-- `-name` - Sort by name (Z-A)
-- `price` - Sort by price (low to high)
-- `-price` - Sort by price (high to low)
-- `stock_quantity` - Sort by stock (low to high)
-- `-stock_quantity` - Sort by stock (high to low)
-- `created_at` - Sort by creation date (oldest first)
-- `-created_at` - Sort by creation date (newest first)
-
-**Product List Response:**
-
-```json
-{
-  "count": 25,
-  "next": "http://localhost:8000/api/products/?page=2",
-  "previous": null,
-  "results": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "name": "iPhone 13",
-      "category": {
-        "id": "550e8400-e29b-41d4-a716-446655440001",
-        "name": "Electronics"
-      },
-      "price": "999.00",
-      "stock_quantity": 3,
-      "min_stock_threshold": 5,
-      "status": "active",
-      "is_low_stock": true,
-      "created_at": "2025-06-10T10:00:00Z"
-    }
-  ]
-}
-```
-
-**Product Detail Response:**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "name": "iPhone 13",
-  "category": {
-    "id": "550e8400-e29b-41d4-a716-446655440001",
-    "name": "Electronics"
-  },
-  "price": "999.00",
-  "stock_quantity": 3,
-  "min_stock_threshold": 5,
-  "status": "active",
-  "is_low_stock": true,
-  "created_by": "550e8400-e29b-41d4-a716-446655440002",
-  "created_by_email": "user@example.com",
-  "created_at": "2025-06-10T10:00:00Z",
-  "updated_at": "2025-06-10T12:00:00Z"
-}
-```
-
-**Create Product Request:**
-
-```json
-{
-  "name": "iPhone 13",
-  "category": "550e8400-e29b-41d4-a716-446655440001",
-  "price": "999.00",
-  "stock_quantity": 10,
-  "min_stock_threshold": 5
-}
-```
-
-**Update Product Request (Partial):**
-
-```json
-{
-  "stock_quantity": 20,
-  "price": "899.00"
-}
-```
-
-**Note:** Status is automatically managed based on stock quantity. You cannot manually set the status field.
-
-### Validation Rules (Module B2)
-
-**Category Validation:**
-
-- ✅ Name must be unique (case-sensitive)
-- ✅ Name cannot be empty or exceed 100 characters
-- ✅ Cannot delete category if products exist
-
-**Product Validation:**
-
-- ✅ All fields are required on creation
-- ✅ Price must be non-negative (>= 0)
-- ✅ Stock quantity must be non-negative (>= 0)
-- ✅ Minimum stock threshold must be non-negative (>= 0)
-- ✅ Category must exist and be valid
-- ✅ Cannot update archived products (must restore first)
-- ✅ Status is automatically managed (cannot be manually set)
-
-**Error Response Examples:**
-
-```json
-// Invalid price
-{
-  "price": ["Price must be non-negative."]
-}
-
-// Category with products cannot be deleted
-{
-  "detail": "Cannot delete category 'Electronics' because it has 15 product(s). Remove or reassign the products first."
-}
-
-// Cannot update archived product
-{
-  "detail": "Cannot update archived products. Restore the product first."
-}
-```
-
-### Quick Test - Categories & Products (Module B2)
-
-Test the Category and Product endpoints using curl:
-
-**1. Create a Category:**
+### Quick Test
 
 ```bash
-curl -X POST http://localhost:8000/api/categories/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+# Login to get access token
+curl -X POST https://eap-assessment-backend.onrender.com/api/auth/login/ \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "Electronics"
-  }'
+  -d '{"email":"demo@demo.com","password":"demo1234"}'
+
+# Get dashboard stats (replace YOUR_TOKEN with access token from above)
+curl -X GET https://eap-assessment-backend.onrender.com/api/dashboard/stats/ \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-**2. List Categories:**
+### API Documentation
+
+- **Swagger UI:** [https://eap-assessment-backend.onrender.com/api/docs/](https://eap-assessment-backend.onrender.com/api/docs)
+
+**Note:** Demo data is shared across all users. Please be respectful when testing.
+
+---
+
+## 📡 API Endpoints
+
+### Authentication
+```
+POST   /api/auth/register/       - Register new user
+POST   /api/auth/login/          - Login (JWT tokens)
+POST   /api/auth/token/refresh/  - Refresh access token
+GET    /api/auth/me/             - Current user profile
+```
+
+### Products & Categories
+```
+GET    /api/categories/          - List categories
+POST   /api/categories/          - Create category
+GET    /api/products/            - List products (with filters)
+POST   /api/products/            - Create product
+PATCH  /api/products/{id}/       - Update product
+DELETE /api/products/{id}/       - Archive product
+```
+
+### Orders
+```
+GET    /api/orders/              - List orders
+POST   /api/orders/              - Create order (atomic)
+GET    /api/orders/{id}/         - Order details
+PATCH  /api/orders/{id}/status/  - Update status
+POST   /api/orders/{id}/cancel/  - Cancel & restore stock
+```
+
+### Restock Queue
+```
+GET    /api/restock/             - List low stock items
+POST   /api/restock/{id}/restock/ - Add stock to product
+DELETE /api/restock/{id}/        - Remove from queue
+```
+
+### Dashboard
+```
+GET    /api/dashboard/stats/     - KPI metrics & analytics
+```
+
+### Activity Log
+```
+GET    /api/activity/            - Recent activity log
+```
+
+---
+
+## 📂 Project Structure
+
+```
+inventory-api/
+├── accounts/           # Authentication & User Management
+├── products/           # Products, Categories, Restock Queue
+├── orders/             # Order Processing
+├── activity/           # Activity Logging
+├── root_app/           # Django Settings
+├── test_*.py           # API Test Scripts
+└── requirements.txt    # Dependencies
+```
+
+---
+
+## 🧪 Testing
 
 ```bash
-curl -X GET http://localhost:8000/api/categories/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-**3. Create a Product:**
-
-```bash
-curl -X POST http://localhost:8000/api/products/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "iPhone 13",
-    "category": "<CATEGORY_UUID>",
-    "price": "999.00",
-    "stock_quantity": 10,
-    "min_stock_threshold": 5
-  }'
-```
-
-**4. List Products with Filters:**
-
-```bash
-# List all active products
-curl -X GET "http://localhost:8000/api/products/?status=active" \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-
-# Search for products
-curl -X GET "http://localhost:8000/api/products/?search=iPhone" \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-
-# Filter by category and order by price
-curl -X GET "http://localhost:8000/api/products/?category=<UUID>&ordering=-price" \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-**5. Update Product Stock:**
-
-```bash
-curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "stock_quantity": 0
-  }'
-# Status automatically changes to 'out_of_stock'
-```
-
-**6. Archive a Product:**
-
-```bash
-curl -X DELETE http://localhost:8000/api/products/<PRODUCT_UUID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-# Product is soft-deleted (status = archived)
-```
-
-**7. Try to Delete Category with Products:**
-
-```bash
-curl -X DELETE http://localhost:8000/api/categories/<CATEGORY_UUID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-# Returns 400 error if products exist
-```
-
-### Module B2 Implementation Details
-
-**Git Commit:** `feat(products): category & product CRUD, status auto-management`
-
-**Files Modified/Created:**
-
-- `products/models.py` - Category and Product models with auto-status logic
-- `products/serializers.py` - All category and product serializers
-- `products/views.py` - CategoryViewSet and ProductViewSet with filtering
-- `products/urls.py` - API routing for categories and products
-- `products/admin.py` - Django admin configuration with visual indicators
-
-**Key Features:**
-
-1. **UUID Primary Keys** - All models use UUIDs for better security
-2. **Automatic Status Management** - Products auto-update status based on stock
-3. **Soft Delete** - Products are archived instead of deleted
-4. **Comprehensive Filtering** - Advanced query parameters for product listing
-5. **Validation** - Input validation at serializer and model levels
-6. **Optimized Queries** - Select/prefetch related for performance
-7. **Low Stock Detection** - Computed property for stock alerts
-8. **Delete Protection** - Categories cannot be deleted if products exist
-
-## 📦 Module B3 — Orders (Implemented ✅)
-
-This module implements a complete order management system with multi-item support, automatic stock deduction, and comprehensive status lifecycle management.
-
-### Order Model
-
-Orders represent customer purchases with automatic order number generation and status tracking:
-
-| Field           | Type         | Description                                    |
-| --------------- | ------------ | ---------------------------------------------- |
-| `id`            | UUID         | Primary key (UUID4)                            |
-| `order_number`  | CharField    | Auto-generated: `ORD-{YYYYMMDD}-{4-digit-seq}` |
-| `customer_name` | CharField    | Customer name (max 200 characters)             |
-| `status`        | CharField    | Order status (lifecycle managed)               |
-| `total_price`   | DecimalField | Total order price (computed from items)        |
-| `created_by`    | FK User      | User who created the order                     |
-| `created_at`    | DateTime     | Timestamp when order was created               |
-| `updated_at`    | DateTime     | Timestamp when order was last updated          |
-
-**Order Status Lifecycle:**
-
-```
-pending    → confirmed | cancelled
-confirmed  → shipped   | cancelled
-shipped    → delivered
-delivered  → (terminal — no further changes)
-cancelled  → (terminal — no further changes)
-```
-
-**Automatic Order Number Generation:**
-
-Order numbers follow the format `ORD-{YYYYMMDD}-{####}` where:
-
-- `YYYYMMDD` is the current date (e.g., 20250610)
-- `####` is a zero-padded 4-digit daily sequence (resets each day)
-- Example: `ORD-20250610-0023`
-
-### OrderItem Model
-
-Order items represent individual products within an order:
-
-| Field        | Type         | Description                     |
-| ------------ | ------------ | ------------------------------- |
-| `id`         | UUID         | Primary key (UUID4)             |
-| `order`      | FK Order     | The order this item belongs to  |
-| `product`    | FK Product   | The product being ordered       |
-| `quantity`   | Integer      | Quantity ordered (min 1)        |
-| `unit_price` | DecimalField | Price snapshot at order time    |
-| `subtotal`   | DecimalField | Computed: quantity × unit_price |
-
-**Features:**
-
-- ✅ Price snapshot — captures product price at time of order
-- ✅ Unique constraint — prevents duplicate products in same order
-- ✅ Automatic subtotal calculation
-- ✅ Protected deletion — product cannot be deleted if in orders
-
-### Order API Endpoints
-
-All order endpoints are prefixed with `/api/orders/`:
-
-| Method | Endpoint                   | Auth Required | Description                      |
-| ------ | -------------------------- | ------------- | -------------------------------- |
-| GET    | `/api/orders/`             | Yes           | List orders with filtering       |
-| POST   | `/api/orders/`             | Yes           | Create order with items (atomic) |
-| GET    | `/api/orders/{id}/`        | Yes           | Get order detail with all items  |
-| PATCH  | `/api/orders/{id}/status/` | Yes           | Update order status              |
-| POST   | `/api/orders/{id}/cancel/` | Yes           | Cancel order and restore stock   |
-
-**Order List Query Parameters:**
-
-| Parameter  | Type   | Description                     | Example                 |
-| ---------- | ------ | ------------------------------- | ----------------------- |
-| `status`   | string | Filter by status                | `?status=pending`       |
-| `search`   | string | Search customer name or order # | `?search=John`          |
-| `ordering` | string | Order results                   | `?ordering=-created_at` |
-
-**Status Filter Values:**
-
-- `pending` - Pending orders
-- `confirmed` - Confirmed orders
-- `shipped` - Shipped orders
-- `delivered` - Delivered orders
-- `cancelled` - Cancelled orders
-
-### Order Creation (Atomic Transaction)
-
-Create an order with multiple items in a single atomic transaction. If any validation fails, the entire order creation is rolled back.
-
-**POST** `/api/orders/`
-
-**Request Body:**
-
-```json
-{
-  "customer_name": "John Doe",
-  "items": [
-    {
-      "product_id": "550e8400-e29b-41d4-a716-446655440000",
-      "quantity": 2
-    },
-    {
-      "product_id": "550e8400-e29b-41d4-a716-446655440001",
-      "quantity": 1
-    }
-  ]
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "id": "650e8400-e29b-41d4-a716-446655440000",
-  "order_number": "ORD-20250610-0023",
-  "customer_name": "John Doe",
-  "status": "pending",
-  "total_price": "2997.00",
-  "created_at": "2025-06-10T10:00:00Z",
-  "updated_at": "2025-06-10T10:00:00Z",
-  "items": [
-    {
-      "id": "750e8400-e29b-41d4-a716-446655440000",
-      "product": {
-        "id": "550e8400-e29b-41d4-a716-446655440000",
-        "name": "iPhone 13"
-      },
-      "quantity": 2,
-      "unit_price": "999.00",
-      "subtotal": "1998.00"
-    },
-    {
-      "id": "750e8400-e29b-41d4-a716-446655440001",
-      "product": {
-        "id": "550e8400-e29b-41d4-a716-446655440001",
-        "name": "MacBook Pro"
-      },
-      "quantity": 1,
-      "unit_price": "999.00",
-      "subtotal": "999.00"
-    }
-  ]
-}
-```
-
-### Order Creation Logic
-
-The order creation process includes comprehensive validation and automatic actions:
-
-1. **Validate Items** - At least one item required
-2. **Duplicate Check** - No duplicate products in the same order
-3. **Product Validation** - All products must exist and be active
-4. **Stock Validation** - Sufficient stock available for each item
-5. **Generate Order Number** - Automatic unique order number
-6. **Create Order** - Create order with pending status
-7. **Create Items** - Create all order items
-8. **Snapshot Prices** - Capture current product prices
-9. **Deduct Stock** - Reduce product stock quantities
-10. **Compute Total** - Calculate total order price
-11. **Update Restock Queue** - Check and update restock queue if needed
-
-**All operations happen in an atomic transaction** — if any step fails, everything is rolled back.
-
-### Order List Response
-
-**GET** `/api/orders/`
-
-```json
-{
-  "count": 25,
-  "next": "http://localhost:8000/api/orders/?page=2",
-  "previous": null,
-  "results": [
-    {
-      "id": "650e8400-e29b-41d4-a716-446655440000",
-      "order_number": "ORD-20250610-0023",
-      "customer_name": "John Doe",
-      "status": "pending",
-      "total_price": "2997.00",
-      "item_count": 2,
-      "created_at": "2025-06-10T10:00:00Z"
-    }
-  ]
-}
-```
-
-### Order Detail Response
-
-**GET** `/api/orders/{id}/`
-
-Returns full order details including all items with nested product information.
-
-### Update Order Status
-
-Update the order status following the lifecycle rules.
-
-**PATCH** `/api/orders/{id}/status/`
-
-**Request Body:**
-
-```json
-{
-  "status": "confirmed"
-}
-```
-
-**Success Response (200 OK):**
-
-Returns full order detail with updated status.
-
-**Validation:**
-
-- Status transition must be valid according to lifecycle rules
-- Terminal states (delivered, cancelled) cannot be changed
-
-### Cancel Order and Restore Stock
-
-Cancel an order and automatically restore stock for all items.
-
-**POST** `/api/orders/{id}/cancel/`
-
-**Success Response (200 OK):**
-
-```json
-{
-  "message": "Order cancelled successfully. Stock restored for all items.",
-  "order": {
-    "id": "650e8400-e29b-41d4-a716-446655440000",
-    "order_number": "ORD-20250610-0023",
-    "customer_name": "John Doe",
-    "status": "cancelled",
-    "total_price": "2997.00",
-    "created_at": "2025-06-10T10:00:00Z",
-    "updated_at": "2025-06-10T10:05:00Z",
-    "items": [...]
-  }
-}
-```
-
-**Cancellation Logic:**
-
-1. Validate status transition (must be cancellable)
-2. Restore stock quantity for each item
-3. Trigger product status updates (e.g., out_of_stock → active)
-4. Update restock queue if needed
-5. Set order status to cancelled
-
-### Validation Rules (Module B3)
-
-**Order Creation Validation:**
-
-- ✅ At least one item required
-- ✅ No duplicate products in order
-- ✅ All products must exist
-- ✅ All products must have `status = active`
-- ✅ Sufficient stock for each item
-- ✅ Quantity must be at least 1
-
-**Status Transition Validation:**
-
-- ✅ Must follow valid lifecycle transitions
-- ✅ Cannot modify terminal states (delivered, cancelled)
-- ✅ Cannot cancel delivered orders
-
-**Error Response Examples:**
-
-```json
-// Duplicate product in order
-{
-  "items": ["Product 'iPhone 13' is already added to this order."]
-}
-
-// Product unavailable
-{
-  "items": ["Product 'iPhone 13' is currently unavailable."]
-}
-
-// Insufficient stock
-{
-  "items": ["Only 3 item(s) available for 'iPhone 13'."]
-}
-
-// Invalid status transition
-{
-  "detail": "Cannot transition from 'delivered' to 'cancelled'. Invalid status transition."
-}
-```
-
-### Quick Test - Orders (Module B3)
-
-Test the Order endpoints using curl:
-
-**1. Create an Order:**
-
-```bash
-curl -X POST http://localhost:8000/api/orders/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "customer_name": "John Doe",
-    "items": [
-      {"product_id": "<PRODUCT_UUID>", "quantity": 2},
-      {"product_id": "<PRODUCT_UUID_2>", "quantity": 1}
-    ]
-  }'
-```
-
-**2. List Orders:**
-
-```bash
-# List all orders
-curl -X GET http://localhost:8000/api/orders/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-
-# Filter by status
-curl -X GET "http://localhost:8000/api/orders/?status=pending" \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-
-# Search by customer name
-curl -X GET "http://localhost:8000/api/orders/?search=John" \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-**3. Get Order Detail:**
-
-```bash
-curl -X GET http://localhost:8000/api/orders/<ORDER_UUID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-**4. Update Order Status:**
-
-```bash
-curl -X PATCH http://localhost:8000/api/orders/<ORDER_UUID>/status/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "confirmed"}'
-```
-
-**5. Cancel Order:**
-
-```bash
-curl -X POST http://localhost:8000/api/orders/<ORDER_UUID>/cancel/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-# Stock is automatically restored for all items
-```
-
-### Module B3 Implementation Details
-
-**Git Commit:** `feat(orders): order CRUD, stock deduction, status lifecycle`
-
-**Files Created:**
-
-- `orders/models.py` - Order and OrderItem models with lifecycle management
-- `orders/serializers.py` - Comprehensive serializers with validation
-- `orders/views.py` - OrderViewSet with custom actions
-- `orders/urls.py` - API routing for orders
-- `orders/admin.py` - Django admin with inline items display
-
-**Key Features:**
-
-1. **Atomic Transactions** - All-or-nothing order creation
-2. **Automatic Order Numbers** - Daily sequence with date prefix
-3. **Stock Validation** - Prevent overselling with comprehensive checks
-4. **Automatic Stock Deduction** - Real-time inventory updates
-5. **Status Lifecycle** - Enforced transition rules
-6. **Price Snapshots** - Historical pricing preservation
-7. **Stock Restoration** - Automatic when order is cancelled
-8. **Restock Queue Integration** - Auto-update queue after stock changes
-9. **Duplicate Prevention** - Unique constraint on order-product pairs
-10. **Optimized Queries** - Select/prefetch related for performance
-
-## 📦 Module B4 — Restock Queue (Implemented ✅)
-
-This module implements an intelligent restock queue system with automatic management and priority-based ordering for low-stock products.
-
-### RestockQueue Model
-
-The restock queue automatically tracks products that need restocking:
-
-| Field            | Type         | Description                            |
-| ---------------- | ------------ | -------------------------------------- |
-| `id`             | UUID         | Primary key (UUID4)                    |
-| `product`        | OneToOne FK  | Product in restock queue (unique)      |
-| `stock_quantity` | IntegerField | Current stock (cached for performance) |
-| `added_at`       | DateTime     | Timestamp when added to queue          |
-
-**Computed Properties:**
-
-- `priority` - Returns `High`, `Medium`, or `Low` based on stock levels
-
-**Priority Calculation (Auto-Computed):**
-
-```python
-# High Priority: Product completely out of stock
-stock_quantity == 0  →  priority = 'High'
-
-# Medium Priority: Stock is critically low (less than half threshold)
-stock_quantity <= min_stock_threshold / 2  →  priority = 'Medium'
-
-# Low Priority: Stock below threshold but not critical
-stock_quantity < min_stock_threshold  →  priority = 'Low'
-```
-
-### Automatic Queue Management
-
-The queue is **fully automated** — products are added and removed automatically based on stock levels:
-
-**Auto-Add to Queue:**
-
-```python
-# Triggered when saving a product
-if product.stock_quantity < product.min_stock_threshold:
-    # Product is automatically added to restock queue
-    RestockQueue.objects.get_or_create(product=product)
-```
-
-**Auto-Remove from Queue:**
-
-```python
-# Triggered after restocking
-if product.stock_quantity >= product.min_stock_threshold:
-    # Product is automatically removed from queue
-    RestockQueue.objects.filter(product=product).delete()
-```
-
-**Features:**
-
-- ✅ No manual queue management needed
-- ✅ Real-time updates when stock changes
-- ✅ Automatic re-evaluation after restocking
-- ✅ Prevents duplicate entries (OneToOne relationship)
-
-### Restock Queue API Endpoints
-
-All restock queue endpoints are prefixed with `/api/restock/`:
-
-| Method | Endpoint                     | Auth Required | Description                          |
-| ------ | ---------------------------- | ------------- | ------------------------------------ |
-| GET    | `/api/restock/`              | Yes           | List all products in restock queue   |
-| GET    | `/api/restock/{id}/`         | Yes           | Get specific queue entry details     |
-| POST   | `/api/restock/{id}/restock/` | Yes           | Add stock to product (custom action) |
-| DELETE | `/api/restock/{id}/`         | Yes           | Manually remove from queue           |
-
-**Note:** The restock queue is auto-managed. You **cannot** manually create queue entries via POST to `/api/restock/`. Products are automatically added when stock falls below threshold.
-
-### Restock Queue List Response
-
-The queue is automatically **ordered by stock_quantity ascending** (lowest stock first = highest urgency):
-
-**GET** `/api/restock/`
-
-```json
-{
-  "count": 3,
-  "next": null,
-  "previous": null,
-  "results": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "product": {
-        "id": "550e8400-e29b-41d4-a716-446655440001",
-        "name": "iPhone 13",
-        "category": "Electronics",
-        "price": "999.00",
-        "stock_quantity": 0,
-        "min_stock_threshold": 5,
-        "status": "out_of_stock"
-      },
-      "stock_quantity": 0,
-      "priority": "High",
-      "added_at": "2025-06-10T10:00:00Z"
-    },
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440002",
-      "product": {
-        "id": "550e8400-e29b-41d4-a716-446655440003",
-        "name": "MacBook Pro",
-        "category": "Electronics",
-        "price": "2499.00",
-        "stock_quantity": 2,
-        "min_stock_threshold": 10,
-        "status": "active"
-      },
-      "stock_quantity": 2,
-      "priority": "Medium",
-      "added_at": "2025-06-10T11:00:00Z"
-    },
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440004",
-      "product": {
-        "id": "550e8400-e29b-41d4-a716-446655440005",
-        "name": "AirPods Pro",
-        "category": "Accessories",
-        "price": "249.00",
-        "stock_quantity": 8,
-        "min_stock_threshold": 15,
-        "status": "active"
-      },
-      "stock_quantity": 8,
-      "priority": "Low",
-      "added_at": "2025-06-10T12:00:00Z"
-    }
-  ]
-}
-```
-
-### Restock Action (Add Stock)
-
-Add stock to a product in the restock queue. The product will be **automatically removed** from the queue if stock reaches the threshold.
-
-**POST** `/api/restock/{id}/restock/`
-
-**Request Body:**
-
-```json
-{
-  "quantity_to_add": 10
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "message": "Stock updated successfully. Product removed from restock queue.",
-  "product": {
-    "id": "550e8400-e29b-41d4-a716-446655440001",
-    "name": "iPhone 13",
-    "category": "Electronics",
-    "price": "999.00",
-    "stock_quantity": 10,
-    "min_stock_threshold": 5,
-    "status": "active"
-  }
-}
-```
-
-**If Stock Still Below Threshold (200 OK):**
-
-```json
-{
-  "message": "Stock updated successfully. Product still in restock queue.",
-  "product": {
-    "id": "550e8400-e29b-41d4-a716-446655440001",
-    "name": "iPhone 13",
-    "category": "Electronics",
-    "price": "999.00",
-    "stock_quantity": 3,
-    "min_stock_threshold": 5,
-    "status": "active"
-  }
-}
-```
-
-**Validation Errors:**
-
-```json
-// Missing quantity
-{
-  "quantity_to_add": ["This field is required."]
-}
-
-// Invalid quantity
-{
-  "quantity_to_add": ["Must be greater than 0."]
-}
-```
-
-### Manual Queue Removal
-
-You can manually remove a product from the restock queue (useful for discontinued items):
-
-**DELETE** `/api/restock/{id}/`
-
-```bash
-curl -X DELETE http://localhost:8000/api/restock/<QUEUE_ID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-**Success Response (204 No Content):**
-
-```
-(No response body)
-```
-
-**Note:** The product will be **automatically re-added** to the queue if stock is still below threshold when updated.
-
-### Validation Rules (Module B4)
-
-**Restock Action Validation:**
-
-- ✅ `quantity_to_add` must be provided
-- ✅ `quantity_to_add` must be greater than 0
-- ✅ Quantity is added to current stock (not replaced)
-- ✅ Stock updates trigger automatic queue re-evaluation
-
-**Queue Management:**
-
-- ✅ Products automatically added when stock < threshold
-- ✅ Products automatically removed when stock >= threshold
-- ✅ Cannot manually create queue entries (auto-managed only)
-- ✅ Cannot have duplicate queue entries (OneToOne relationship)
-- ✅ Queue ordered by urgency (stock_quantity ASC)
-
-### Quick Test - Restock Queue (Module B4)
-
-Test the Restock Queue endpoints using curl:
-
-**1. Create a Low-Stock Product (Auto-Adds to Queue):**
-
-```bash
-curl -X POST http://localhost:8000/api/products/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "iPhone 13",
-    "category": "<CATEGORY_UUID>",
-    "price": "999.00",
-    "stock_quantity": 2,
-    "min_stock_threshold": 10
-  }'
-# Product automatically added to restock queue
-```
-
-**2. List Restock Queue (Ordered by Urgency):**
-
-```bash
-curl -X GET http://localhost:8000/api/restock/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-# Returns all products needing restock, lowest stock first
-```
-
-**3. Get Queue Entry Details:**
-
-```bash
-curl -X GET http://localhost:8000/api/restock/<QUEUE_ID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-**4. Restock a Product (Auto-Removes if Sufficient):**
-
-```bash
-curl -X POST http://localhost:8000/api/restock/<QUEUE_ID>/restock/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "quantity_to_add": 15
-  }'
-# Adds 15 to stock_quantity, auto-removes from queue if stock >= threshold
-```
-
-**5. Manually Remove from Queue:**
-
-```bash
-curl -X DELETE http://localhost:8000/api/restock/<QUEUE_ID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-# Removes from queue (will re-add if stock still low)
-```
-
-**6. Test Priority Levels:**
-
-```bash
-# High Priority (stock = 0)
-curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"stock_quantity": 0}'
-
-# Medium Priority (stock <= threshold/2)
-curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"stock_quantity": 2}'  # If threshold is 10
-
-# Low Priority (stock < threshold)
-curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d '{"stock_quantity": 8}'  # If threshold is 10
-```
-
-### Module B4 Implementation Details
-
-**Git Commit:** `feat(products): restock queue with auto-management & priority`
-
-**Files Modified/Created:**
-
-- `products/models.py` - RestockQueue model with priority property and check_restock_queue() helper
-- `products/serializers.py` - RestockQueue, RestockQueueProduct, and RestockAction serializers
-- `products/views.py` - RestockQueueViewSet with list, retrieve, restock action, destroy
-- `products/urls.py` - API routing for restock queue
-- `products/admin.py` - RestockQueueAdmin with color-coded priority display
-- `products/migrations/0003_restockqueue.py` - Database migration for RestockQueue table
-
-**Key Features:**
-
-1. **Automatic Queue Management** - Products auto-add/remove based on stock levels
-2. **Priority Calculation** - Three-tier priority system (High/Medium/Low)
-3. **Smart Re-evaluation** - Queue updates automatically after stock changes
-4. **Ordered by Urgency** - Lowest stock products appear first
-5. **Restock Action** - Custom endpoint to add stock and auto-remove from queue
-6. **OneToOne Relationship** - Prevents duplicate queue entries
-7. **Cached Stock** - Performance optimization with denormalized stock_quantity
-8. **Admin Color Coding** - Visual priority indicators (🔴 High, 🟠 Medium, 🔵 Low)
-
-## 🪵 Module B5 — Activity Log (Implemented ✅)
-
-### Overview
-Module B5 implements an immutable, append-only audit trail that automatically logs critical system events.
-
-**Git commit:** `feat(activity): activity log model and endpoint`
-
-### Activity Log Model
-The `ActivityLog` model captures context about system actions:
-
-| Field | Type | Description |
-|---|---|---|
-| `id` | UUID | Primary key (UUID4) |
-| `action` | CharField | Human-readable description of the event |
-| `performed_by` | FK User | User who performed the action (NULL for system events) |
-| `timestamp` | DateTime | Automatic timestamp of the event |
-| `entity_type` | CharField | Type of entity: `order`, `product`, `restock`, `auth` |
-| `entity_id` | UUID | Optional ID of the related entity |
-
-### Log Entry Formats
-The system automatically generates logs for the following triggers:
-
-| Trigger | Message Format |
-|---|---|
-| Order Created | `Order #ORD-XXX created by {username}` |
-| Status Change | `Order #ORD-XXX marked as {status}` |
-| Order Cancelled | `Order #ORD-XXX cancelled by {username}` |
-| Product Created | `Product '{name}' created by {username}` |
-| Product Updated | `Product '{name}' updated by {username}` |
-| Manual Restock | `Stock updated for '{name}' (+{qty} units)` |
-| Restock Queue | `Product '{name}' added to Restock Queue` |
-
-### API Endpoint
-**GET** `/api/activity/`
-
-Returns the **latest 50 entries**, newest first, with no pagination for a quick audit overview.
-
-**Success Response (200 OK):**
-```json
-[
-  {
-    "id": "uuid",
-    "action": "Order #ORD-20260401-0001 created by admin",
-    "performed_by": "uuid",
-    "performed_by_name": "admin",
-    "timestamp": "2026-04-01T14:30:00Z",
-    "entity_type": "order",
-    "entity_id": "uuid"
-  }
-]
-```
-
-### Key Features:
-1. **Immutable Trail** - Logs cannot be manually created, updated, or deleted via the API or Admin UI (read-only enforced).
-2. **Automatic Triggers** - Hooked into ViewSet actions and Model hooks.
-3. **Context Rich** - Tracks the responsible user and links to specific entities.
-
-## 📊 Module B6 — Dashboard Stats (Implemented ✅)
-
-### Overview
-
-Module B6 provides a single aggregation endpoint that returns comprehensive dashboard KPI statistics including order metrics, revenue data, and inventory status.
-
-**Git commit:** `feat(dashboard): stats aggregation endpoint`
-
-### Dashboard Stats Endpoint
-
-| Method | URL                     | Description           |
-|--------|-------------------------|-----------------------|
-| GET    | `/api/dashboard/stats/` | Dashboard KPI summary |
-
-**Authentication Required:** Yes (JWT Bearer token)
-
-### Response Structure
-
-```json
-{
-  "orders_today": 12,
-  "pending_orders": 5,
-  "completed_orders": 7,
-  "revenue_today": "14980.00",
-  "low_stock_count": 3,
-  "product_summary": [
-    {
-      "id": "uuid",
-      "name": "iPhone 13",
-      "stock_quantity": 3,
-      "status": "low_stock"
-    },
-    {
-      "id": "uuid",
-      "name": "T-Shirt",
-      "stock_quantity": 20,
-      "status": "ok"
-    }
-  ]
-}
-```
-
-### Field Definitions
-
-| Field              | Type    | Description                                                    |
-|--------------------|---------|----------------------------------------------------------------|
-| `orders_today`     | Integer | Count of all orders where `created_at__date = today`          |
-| `pending_orders`   | Integer | Count of orders with `status = pending`                        |
-| `completed_orders` | Integer | Count of `delivered` orders where `created_at__date = today`   |
-| `revenue_today`    | Decimal | Sum of `total_price` for non-cancelled orders created today    |
-| `low_stock_count`  | Integer | Count of products where `stock_quantity < min_stock_threshold` |
-| `product_summary`  | Array   | All active products with derived status field                  |
-
-### Product Status Logic
-
-The `status` field in `product_summary` is derived based on stock levels:
-
-- **`out_of_stock`**: `stock_quantity == 0`
-- **`low_stock`**: `0 < stock_quantity < min_stock_threshold`
-- **`ok`**: `stock_quantity >= min_stock_threshold`
-
-### Example Request
-
-```bash
-# Get dashboard statistics
-curl -X GET http://localhost:8000/api/dashboard/stats/ \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-### Example Response
-
-```json
-{
-  "orders_today": 3,
-  "pending_orders": 2,
-  "completed_orders": 1,
-  "revenue_today": "2499.99",
-  "low_stock_count": 2,
-  "product_summary": [
-    {
-      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "name": "Laptop Pro 15",
-      "stock_quantity": 2,
-      "status": "low_stock"
-    },
-    {
-      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      "name": "Wireless Mouse",
-      "stock_quantity": 0,
-      "status": "out_of_stock"
-    },
-    {
-      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      "name": "USB-C Cable",
-      "stock_quantity": 50,
-      "status": "ok"
-    }
-  ]
-}
-```
-
-### Quick Test - Dashboard Stats (Module B6)
-
-```bash
-# 1. Login to get access token
-curl -X POST http://localhost:8000/api/auth/login/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "demo@demo.com",
-    "password": "demo1234"
-  }'
-
-# 2. Get dashboard stats
-curl -X GET http://localhost:8000/api/dashboard/stats/ \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-**Or use the provided test script:**
-
-```bash
+# Run all tests
+python manage.py test
+
+# Test specific module
+python manage.py test accounts
+python manage.py test products
+python manage.py test orders
+
+# Quick API tests
+python test_auth_api.py
 python test_dashboard_stats.py
 ```
 
-### Module B6 Implementation Details
-
-**Files Modified/Created:**
-
-1. **`products/serializers.py`**
-   - Added `ProductSummarySerializer` - Product info with derived status
-   - Added `DashboardStatsSerializer` - Main dashboard stats response
-
-2. **`products/views.py`**
-   - Added `dashboard_stats()` function-based view
-   - Aggregates data from Order and Product models
-   - Computes KPIs using Django ORM aggregations
-
-3. **`products/urls.py`**
-   - Added route: `GET /api/dashboard/stats/`
-
-4. **`test_dashboard_stats.py`**
-   - Comprehensive test script for dashboard endpoint
-   - Tests authentication requirement
-   - Displays formatted KPI metrics
-
-**Key Features:**
-
-- ✅ Single endpoint aggregation for dashboard KPIs
-- ✅ Efficient queries using Django ORM `aggregate()` and `annotate()`
-- ✅ Date-based filtering for today's metrics
-- ✅ Derived product status (not stored in database)
-- ✅ Excludes cancelled orders from revenue calculation
-- ✅ Excludes archived products from inventory metrics
-- ✅ JWT authentication required
-- ✅ Comprehensive test coverage
-
-## 🔧 Configuration
-
-### Django Settings
-
-Key settings in [root_app/settings.py](root_app/settings.py):
-
-- **CORS**: Configured for cross-origin requests
-- **JWT**: Token-based authentication
-- **DRF Spectacular**: API documentation
-- **Django Unfold**: Modern admin interface
-- **Logging**: Comprehensive logging setup
-
-### Environment Variables (Optional)
-
-Create a `.env` file for sensitive settings:
-
-```env
-# Django Core
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Database (default: SQLite)
-DATABASE_URL=sqlite:///db.sqlite3
-
-# CORS (for frontend integration)
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-
-# JWT Configuration (optional, defaults are set)
-JWT_ACCESS_TOKEN_LIFETIME=60  # minutes
-JWT_REFRESH_TOKEN_LIFETIME=10080  # 7 days in minutes
-```
-
-**Module B1 Required Packages:**
-
-```txt
-Django>=5.2
-djangorestframework>=3.14
-djangorestframework-simplejwt>=5.3
-django-cors-headers>=4.3
-drf-spectacular>=0.27
-```
-
-## 📊 API Endpoints
-
-### Authentication (accounts/) ✅ Module B1
-
-**All endpoints prefixed with `/api/auth/`**
-
-| Method | Endpoint                   | Auth Required | Description                                         |
-| ------ | -------------------------- | ------------- | --------------------------------------------------- |
-| POST   | `/api/auth/register/`      | No            | Register new user → 201 + `{access, refresh, user}` |
-| POST   | `/api/auth/login/`         | No            | Login → 200 + `{access, refresh, user}`             |
-| POST   | `/api/auth/token/refresh/` | No            | Refresh token → new access token                    |
-| GET    | `/api/auth/me/`            | Yes           | Get current user profile                            |
-
-### Main API (products/) ✅ Modules B2, B3, B4, B6
-
-**Categories (Module B2):**
-
-- `GET /api/categories/` - List all categories (auth required)
-- `POST /api/categories/` - Create category (auth required)
-- `GET /api/categories/{id}/` - Get category details (auth required)
-- `PATCH /api/categories/{id}/` - Update category (auth required)
-- `DELETE /api/categories/{id}/` - Delete category (auth required)
-
-**Products (Module B2):**
-
-- `GET /api/products/` - List products with filters (auth required)
-- `POST /api/products/` - Create product (auth required)
-- `GET /api/products/{id}/` - Get product details (auth required)
-- `PATCH /api/products/{id}/` - Update product (auth required)
-- `DELETE /api/products/{id}/` - Archive product (auth required)
-
-**Orders (Module B3):**
-
-- `GET /api/orders/` - List orders (auth required)
-- `POST /api/orders/` - Create order (auth required)
-- `GET /api/orders/{id}/` - Get order details (auth required)
-- `PATCH /api/orders/{id}/status/` - Update order status (auth required)
-- `POST /api/orders/{id}/cancel/` - Cancel order (auth required)
-
-**Restock Queue (Module B4):**
-
-- `GET /api/restock/` - List restock queue (auth required)
-- `GET /api/restock/{id}/` - Get restock queue entry (auth required)
-- `POST /api/restock/{id}/restock/` - Restock product (auth required)
-- `DELETE /api/restock/{id}/` - Remove from queue (auth required)
-
-**Activity Log (Module B5):**
-
-- `GET /api/activity/` - Latest 50 activity logs (auth required)
-
-**Dashboard Stats (Module B6):**
-
-- `GET /api/dashboard/stats/` - Dashboard KPI summary (auth required)
-
-### Web API (web_api/) - Public Access
-
-- `GET /web/info/` - Public API information (no auth required)
-
-_Add your public endpoints here - perfect for blogs, public content, etc._
-
-### Admin API (admin_api/) - Authenticated Access
-
-- `GET /admin-api/info/` - Admin API information (auth required)
-- `GET /admin-api/dashboard/` - Dashboard statistics (admin only)
-
-_Add your admin-only endpoints here - dashboards, reports, user management, etc._
-
-## ?? Admin Panel
-
-Access the Django Unfold admin panel at: http://localhost:8000/admin/
-
-Features:
-
-- Modern, responsive UI
-- Dark mode support
-- Advanced filtering and searching
-- Inline editing
-- Custom actions
-
-## ?? Testing
-
-### Quick Test - Authentication (Module B1)
-
-Test the authentication endpoints using curl or any API client:
-
-**1. Register a new user:**
-
-```bash
-curl -X POST http://localhost:8000/api/auth/register/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "testpass123",
-    "password2": "testpass123"
-  }'
-```
-
-**2. Login with demo user:**
-
-```bash
-curl -X POST http://localhost:8000/api/auth/login/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "demo@demo.com",
-    "password": "demo1234"
-  }'
-```
-
-**3. Get current user profile:**
-
-```bash
-# Replace <ACCESS_TOKEN> with the token from login response
-curl -X GET http://localhost:8000/api/auth/me/ \
-  -H "Authorization: Bearer <ACCESS_TOKEN>"
-```
-
-**4. Refresh token:**
-
-```bash
-# Replace <REFRESH_TOKEN> with the refresh token from login
-curl -X POST http://localhost:8000/api/auth/token/refresh/ \
-  -H "Content-Type: application/json" \
-  -d '{"refresh": "<REFRESH_TOKEN>"}'
-```
-
-### Run Unit Tests
-
-Run all tests with:
-
-```bash
-python manage.py test
-```
-
-Run tests for a specific app:
-
-```bash
-python manage.py test accounts
-python manage.py test products
-```
-
-## ?? Customization Guide
-
-### 1. Create Your Own Models
-
-Replace the example model in `products/models.py`:
-
-```python
-from django.db import models
-
-class YourModel(models.Model):
-    # Your fields here
-    name = models.CharField(max_length=200)
-    # ...
-```
-
-### 2. Create Serializers
-
-Update `products/serializers.py`:
-
-```python
-from rest_framework import serializers
-from .models import YourModel
-
-class YourModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = YourModel
-        fields = '__all__'
-```
-
-### 3. Create ViewSets
-
-Update `products/views.py`:
-
-```python
-from rest_framework import viewsets
-from .models import YourModel
-from .serializers import YourModelSerializer
-
-class YourModelViewSet(viewsets.ModelViewSet):
-    queryset = YourModel.objects.all()
-    serializer_class = YourModelSerializer
-```
-
-### 4. Register URLs
-
-Update `products/urls.py`:
-
-```python
-router.register(r'your-endpoint', views.YourModelViewSet)
-```
-
-### 5. Register in Admin
-
-Update `products/admin.py`:
-
-```python
-@admin.register(YourModel)
-class YourModelAdmin(ModelAdmin):
-    list_display = ('name', ...)
-```
-
-## ??? Database Migration
-
-### Switch to PostgreSQL
-
-1. Install psycopg2:
-
-   ```bash
-   pip install psycopg2-binary
-   ```
-
-2. Update `settings.py`:
-   ```python
-   DATABASES = {
-       'default': {
-           'ENGINE': 'django.db.backends.postgresql',
-           'NAME': 'your_db_name',
-           'USER': 'your_db_user',
-           'PASSWORD': 'your_db_password',
-           'HOST': 'localhost',
-           'PORT': '5432',
-       }
-   }
-   ```
-
-## ?? Deployment
-
-### Gunicorn (Production)
-
-1. Install Gunicorn:
-
-   ```bash
-   pip install gunicorn
-   ```
-
-2. Run with Gunicorn:
-   ```bash
-   gunicorn root_app.wsgi:application --bind 0.0.0.0:8000
-   ```
-
-### Docker (Optional)
-
-Create a `Dockerfile`:
-
-```dockerfile
-FROM python:3.11
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-
-RUN python manage.py collectstatic --noinput
-RUN python manage.py migrate
-
-EXPOSE 8000
-CMD ["gunicorn", "root_app.wsgi:application", "--bind", "0.0.0.0:8000"]
-```
+---
 
 ## 📖 Documentation
 
-### Software Requirements Specification (SRS)
+- **[Complete API Documentation](API_DOCS_README.md)** - Detailed API reference with examples
+- **[HTTP Cookie Auth Guide](HTTP_COOKIE_AUTH.md)** - Secure cookie-based authentication
+- **[SRS Document](srs.md)** - Software Requirements Specification
 
-The complete project specification is available in [srs.md](srs.md). It contains detailed requirements for all modules (B1-B7).
 
-### Module B1 — Authentication (Completed ✅)
+---
 
-**Git Commit:** `feat(auth): JWT auth, custom user model, register/login endpoints`
+## 🎯 Use Cases
 
-**Implementation Details:**
+- **E-commerce Platforms**: Complete backend for online stores
+- **Warehouse Management**: Track inventory across multiple locations
+- **Retail Systems**: POS integration with inventory sync
+- **Supply Chain**: Monitor stock levels and reorder points
+- **B2B Platforms**: Multi-tenant inventory management
 
-- **Custom User Model**: `accounts.User` with UUID primary key, email authentication, and role field
-- **Serializers**: Register, Login, User, LoginResponse serializers
-- **Views**: RegisterView, LoginView, current_user_view
-- **Endpoints**: `/api/auth/register/`, `/api/auth/login/`, `/api/auth/token/refresh/`, `/api/auth/me/`
-- **Demo User Seeding**: Management command `seed_demo` for creating test user
-- **Validation**: Email uniqueness, password matching, minimum length enforcement
-- **Error Handling**: JSON error responses for all validation failures
+---
 
-**Files Modified/Created:**
+## 🔧 Configuration
 
-- `accounts/models.py` - Custom User model
-- `accounts/serializers.py` - All auth serializers
-- `accounts/views.py` - Registration and login views
-- `accounts/urls.py` - Auth routing
-- `accounts/management/commands/seed_demo.py` - Demo user command
-- `root_app/settings.py` - JWT, REST Framework, CORS configuration
+### Environment Variables
 
-### API Testing Tools
+Create a `.env` file (optional):
 
-- **Swagger UI**: http://localhost:8000/api/docs/ (interactive API documentation)
-- **ReDoc**: http://localhost:8000/api/redoc/ (beautiful API docs)
-- **Admin Panel**: http://localhost:8000/admin/ (Django Unfold interface)
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key
+DATABASE_URL=postgresql://user:pass@localhost/dbname
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:3000
+PRODUCTION_URL=https://eap-assessment-backend.onrender.com
+```
+
+### Database
+
+**Development:** SQLite (default)  
+**Production:** PostgreSQL (recommended)
+
+---
+
+## 🚢 Deployment
+
+### Production Checklist
+
+- [ ] Set `DEBUG=False` in settings
+- [ ] Configure PostgreSQL database
+- [ ] Set strong `SECRET_KEY`
+- [ ] Configure `ALLOWED_HOSTS`
+- [ ] Set up CORS for frontend domain
+- [ ] Enable HTTPS and secure cookies
+- [ ] Set up Gunicorn/uWSGI
+- [ ] Configure static files serving
+- [ ] Set up database backups
+
+### Docker Support
+
+```bash
+# Coming soon
+docker-compose up
+```
+
+---
+
+## 🎨 Frontend Integration
+
+### React Example
+
+```javascript
+// API Base URL
+const API_URL = 'https://eap-assessment-backend.onrender.com';
+// For local development: const API_URL = 'http://localhost:8000';
+
+// Login and fetch dashboard stats
+const login = async () => {
+  const response = await fetch(`${API_URL}/api/auth/login/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'demo@demo.com', password: 'demo1234' })
+  });
+  const { access } = await response.json();
+  
+  // Fetch dashboard stats
+  const stats = await fetch(`${API_URL}/api/dashboard/stats/`, {
+    headers: { 'Authorization': `Bearer ${access}` }
+  });
+  return await stats.json();
+};
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
 
 ## 📝 License
 
-This project is open source and available for use as a boilerplate/starter template.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ?? Contributing
+---
 
-Feel free to modify and adapt this boilerplate for your own projects!
+## 👨‍💻 Author
 
-## ?? Support
+**ATIK**
+- GitHub: [@atik65](https://github.com/atik65)
+- Production API: [https://eap-assessment-backend.onrender.com](https://eap-assessment-backend.onrender.com)
 
-For issues and questions, please open an issue in the repository.
+---
 
-# EAP-assessment-backend
+## 🙏 Acknowledgments
+
+- Built with [Django REST Framework](https://www.django-rest-framework.org/)
+- Authentication via [Simple JWT](https://django-rest-framework-simplejwt.readthedocs.io/)
+- API documentation with [drf-spectacular](https://drf-spectacular.readthedocs.io/)
+
+---
+
+## 📊 Project Stats
+
+- **Total Endpoints:** 25+
+- **Models:** 7 (User, Category, Product, Order, OrderItem, RestockQueue, ActivityLog)
+- **Test Coverage:** Comprehensive API tests included
+- **Documentation:** 2000+ lines of detailed guides
+
+---
+
+<div align="center">
+
+**⭐ Star this repository if you find it helpful!**
+
+🌐 **Live API:** [https://eap-assessment-backend.onrender.com](https://eap-assessment-backend.onrender.com)
+
+[Report Bug](https://github.com/yourusername/eap-assessment-backend/issues) · [Request Feature](https://github.com/yourusername/eap-assessment-backend/issues) · [Documentation](README.md)
+
+</div>
