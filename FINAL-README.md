@@ -143,9 +143,9 @@ curl -X GET https://eap-assessment-backend.onrender.com/api/dashboard/stats/ \
 
 ### API Documentation
 
-- **Swagger UI:** [https://eap-assessment-backend.onrender.com/api/schema/swagger-ui/](https://eap-assessment-backend.onrender.com/api/schema/swagger-ui/)
-- **ReDoc:** [https://eap-assessment-backend.onrender.com/api/schema/redoc/](https://eap-assessment-backend.onrender.com/api/schema/redoc/)
-- **OpenAPI Schema:** [https://eap-assessment-backend.onrender.com/api/schema/](https://eap-assessment-backend.onrender.com/api/schema/)
+- **Swagger UI:** [https://eap-assessment-backend.onrender.com/api/docs/](https://eap-assessment-backend.onrender.com/api/schema/swagger-ui/)
+- **ReDoc:** [https://eap-assessment-backend.onrender.com/api/docs/redoc/](https://eap-assessment-backend.onrender.com/api/schema/redoc/)
+- **OpenAPI Schema:** [https://eap-assessment-backend.onrender.com/api/docs/](https://eap-assessment-backend.onrender.com/api/schema/)
 
 **Note:** Demo data is shared across all users. Please be respectful when testing.
 
