@@ -37,7 +37,12 @@ This project follows the Software Requirements Specification (SRS) document for 
 |        | ├─ Manual Restock Endpoint               | ✅              |
 |        | └─ Queue Listing & Removal               | ✅              |
 | **B5** | **Activity Log**                         | 🔄 Pending      |
-| **B6** | **Dashboard Stats**                      | 🔄 Pending      |
+| **B6** | **Dashboard Stats**                      | ✅ **Complete** |
+|        | ├─ Dashboard KPI Aggregation             | ✅              |
+|        | ├─ Order Metrics (Today/Pending/Done)    | ✅              |
+|        | ├─ Revenue Calculation                   | ✅              |
+|        | ├─ Low Stock Count                       | ✅              |
+|        | └─ Product Summary with Status           | ✅              |
 | **B7** | **Deployment**                           | 🔄 Pending      |
 
 ## 🚀 Features
@@ -91,10 +96,17 @@ This project follows the Software Requirements Specification (SRS) document for 
 - ✅ **Smart Re-evaluation** - Auto-remove when stock sufficient
 - ✅ **Ordered Listing** - Lowest stock products first
 
-### Coming Soon (SRS Modules B5-B7)
+### Module B6 — Dashboard Stats (Implemented ✅)
+
+- ✅ Dashboard KPI aggregation endpoint
+- ✅ Order statistics (today, pending, completed)
+- ✅ Revenue calculations
+- ✅ Low stock alerts
+- ✅ Product summary with status
+
+### Coming Soon (SRS Modules B5 & B7)
 
 - 🔄 Activity Logging (audit trail)
-- 🔄 Dashboard Statistics & Analytics
 - 🔄 Production Deployment Configuration
 
 ## 📁 Project Structure
@@ -1534,7 +1546,162 @@ curl -X PATCH http://localhost:8000/api/products/<PRODUCT_UUID>/ \
 7. **Cached Stock** - Performance optimization with denormalized stock_quantity
 8. **Admin Color Coding** - Visual priority indicators (🔴 High, 🟠 Medium, 🔵 Low)
 
-## �🔧 Configuration
+## 📊 Module B6 — Dashboard Stats (Implemented ✅)
+
+### Overview
+
+Module B6 provides a single aggregation endpoint that returns comprehensive dashboard KPI statistics including order metrics, revenue data, and inventory status.
+
+**Git commit:** `feat(dashboard): stats aggregation endpoint`
+
+### Dashboard Stats Endpoint
+
+| Method | URL                     | Description           |
+|--------|-------------------------|-----------------------|
+| GET    | `/api/dashboard/stats/` | Dashboard KPI summary |
+
+**Authentication Required:** Yes (JWT Bearer token)
+
+### Response Structure
+
+```json
+{
+  "orders_today": 12,
+  "pending_orders": 5,
+  "completed_orders": 7,
+  "revenue_today": "14980.00",
+  "low_stock_count": 3,
+  "product_summary": [
+    {
+      "id": "uuid",
+      "name": "iPhone 13",
+      "stock_quantity": 3,
+      "status": "low_stock"
+    },
+    {
+      "id": "uuid",
+      "name": "T-Shirt",
+      "stock_quantity": 20,
+      "status": "ok"
+    }
+  ]
+}
+```
+
+### Field Definitions
+
+| Field              | Type    | Description                                                    |
+|--------------------|---------|----------------------------------------------------------------|
+| `orders_today`     | Integer | Count of all orders where `created_at__date = today`          |
+| `pending_orders`   | Integer | Count of orders with `status = pending`                        |
+| `completed_orders` | Integer | Count of `delivered` orders where `created_at__date = today`   |
+| `revenue_today`    | Decimal | Sum of `total_price` for non-cancelled orders created today    |
+| `low_stock_count`  | Integer | Count of products where `stock_quantity < min_stock_threshold` |
+| `product_summary`  | Array   | All active products with derived status field                  |
+
+### Product Status Logic
+
+The `status` field in `product_summary` is derived based on stock levels:
+
+- **`out_of_stock`**: `stock_quantity == 0`
+- **`low_stock`**: `0 < stock_quantity < min_stock_threshold`
+- **`ok`**: `stock_quantity >= min_stock_threshold`
+
+### Example Request
+
+```bash
+# Get dashboard statistics
+curl -X GET http://localhost:8000/api/dashboard/stats/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### Example Response
+
+```json
+{
+  "orders_today": 3,
+  "pending_orders": 2,
+  "completed_orders": 1,
+  "revenue_today": "2499.99",
+  "low_stock_count": 2,
+  "product_summary": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Laptop Pro 15",
+      "stock_quantity": 2,
+      "status": "low_stock"
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "Wireless Mouse",
+      "stock_quantity": 0,
+      "status": "out_of_stock"
+    },
+    {
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "USB-C Cable",
+      "stock_quantity": 50,
+      "status": "ok"
+    }
+  ]
+}
+```
+
+### Quick Test - Dashboard Stats (Module B6)
+
+```bash
+# 1. Login to get access token
+curl -X POST http://localhost:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "demo@demo.com",
+    "password": "demo1234"
+  }'
+
+# 2. Get dashboard stats
+curl -X GET http://localhost:8000/api/dashboard/stats/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**Or use the provided test script:**
+
+```bash
+python test_dashboard_stats.py
+```
+
+### Module B6 Implementation Details
+
+**Files Modified/Created:**
+
+1. **`products/serializers.py`**
+   - Added `ProductSummarySerializer` - Product info with derived status
+   - Added `DashboardStatsSerializer` - Main dashboard stats response
+
+2. **`products/views.py`**
+   - Added `dashboard_stats()` function-based view
+   - Aggregates data from Order and Product models
+   - Computes KPIs using Django ORM aggregations
+
+3. **`products/urls.py`**
+   - Added route: `GET /api/dashboard/stats/`
+
+4. **`test_dashboard_stats.py`**
+   - Comprehensive test script for dashboard endpoint
+   - Tests authentication requirement
+   - Displays formatted KPI metrics
+
+**Key Features:**
+
+- ✅ Single endpoint aggregation for dashboard KPIs
+- ✅ Efficient queries using Django ORM `aggregate()` and `annotate()`
+- ✅ Date-based filtering for today's metrics
+- ✅ Derived product status (not stored in database)
+- ✅ Excludes cancelled orders from revenue calculation
+- ✅ Excludes archived products from inventory metrics
+- ✅ JWT authentication required
+- ✅ Comprehensive test coverage
+
+## 🔧 Configuration
 
 ### Django Settings
 
@@ -1590,26 +1757,42 @@ drf-spectacular>=0.27
 | POST   | `/api/auth/token/refresh/` | No            | Refresh token → new access token                    |
 | GET    | `/api/auth/me/`            | Yes           | Get current user profile                            |
 
-### Main API (products/)
+### Main API (products/) ✅ Modules B2, B3, B4, B6
 
-**Example Model CRUD:**
+**Categories (Module B2):**
 
-- `GET /api/examples/` - List all example items
-- `POST /api/examples/` - Create new item (auth required)
-- `GET /api/examples/{id}/` - Get specific item
-- `PUT /api/examples/{id}/` - Update item (auth required)
-- `PATCH /api/examples/{id}/` - Partial update (auth required)
-- `DELETE /api/examples/{id}/` - Delete item (auth required)
+- `GET /api/categories/` - List all categories (auth required)
+- `POST /api/categories/` - Create category (auth required)
+- `GET /api/categories/{id}/` - Get category details (auth required)
+- `PATCH /api/categories/{id}/` - Update category (auth required)
+- `DELETE /api/categories/{id}/` - Delete category (auth required)
 
-**Custom Actions:**
+**Products (Module B2):**
 
-- `GET /api/examples/active/` - Get active items only
-- `POST /api/examples/{id}/toggle_status/` - Toggle item status
+- `GET /api/products/` - List products with filters (auth required)
+- `POST /api/products/` - Create product (auth required)
+- `GET /api/products/{id}/` - Get product details (auth required)
+- `PATCH /api/products/{id}/` - Update product (auth required)
+- `DELETE /api/products/{id}/` - Archive product (auth required)
 
-**Utility Endpoints:**
+**Orders (Module B3):**
 
-- `GET /api/health/` - Health check endpoint
-- `GET /api/statistics/` - Get statistics (auth required)
+- `GET /api/orders/` - List orders (auth required)
+- `POST /api/orders/` - Create order (auth required)
+- `GET /api/orders/{id}/` - Get order details (auth required)
+- `PATCH /api/orders/{id}/status/` - Update order status (auth required)
+- `POST /api/orders/{id}/cancel/` - Cancel order (auth required)
+
+**Restock Queue (Module B4):**
+
+- `GET /api/restock/` - List restock queue (auth required)
+- `GET /api/restock/{id}/` - Get restock queue entry (auth required)
+- `POST /api/restock/{id}/restock/` - Restock product (auth required)
+- `DELETE /api/restock/{id}/` - Remove from queue (auth required)
+
+**Dashboard Stats (Module B6):**
+
+- `GET /api/dashboard/stats/` - Dashboard KPI summary (auth required)
 
 ### Web API (web_api/) - Public Access
 
