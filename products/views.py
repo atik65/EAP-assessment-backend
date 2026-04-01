@@ -612,9 +612,6 @@ def dashboard_stats(request):
     # Get all products (excluding archived) for product summary
     products = Product.objects.exclude(status=Product.STATUS_ARCHIVED).order_by("name")
 
-    # Serialize product summary
-    product_summary_data = ProductSummarySerializer(products, many=True).data
-
     # Prepare response data
     stats_data = {
         "orders_today": orders_today_count,
@@ -622,7 +619,7 @@ def dashboard_stats(request):
         "completed_orders": completed_orders_today_count,
         "revenue_today": revenue_today,
         "low_stock_count": low_stock_count,
-        "product_summary": product_summary_data,
+        "product_summary": products,  # Pass queryset directly, not serialized data
     }
 
     # Serialize and return
