@@ -1,11 +1,13 @@
 # 🏪 Smart Inventory & Order Management System
 
-**A production-ready Django REST Framework API for managing inventory, orders, and stock operations**
+**A production-ready Django REST Framework API deployed on [Render](https://render.com/) using [Neon PostgreSQL](https://neon.tech/) (Free Tier)**
 
 [![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
 [![DRF](https://img.shields.io/badge/DRF-3.14-red.svg)](https://www.django-rest-framework.org/)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Deployed on Render](https://img.shields.io/badge/Deployed%20on-Render-5ebaba?style=flat&logo=render)](https://eap-assessment-backend.onrender.com)
+[![Database: Neon](https://img.shields.io/badge/Database-Neon%20DB-00e599?style=flat&logo=postgresql)](https://neon.tech/)
 
 ---
 
@@ -67,7 +69,7 @@ A comprehensive REST API backend built with Django REST Framework that provides 
 **Backend Framework:**
 - Django 5.2
 - Django REST Framework 3.14
-- PostgreSQL / SQLite
+- **PostgreSQL (Neon Serverless DB)** / SQLite
 
 **Authentication:**
 - djangorestframework-simplejwt 5.3
