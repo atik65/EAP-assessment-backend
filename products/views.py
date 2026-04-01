@@ -23,6 +23,7 @@ from .serializers import (
     RestockActionSerializer,
     RestockQueueSerializer,
 )
+from activity.models import ActivityLog
 
 logger = logging.getLogger(__name__)
 
@@ -283,6 +284,13 @@ class ProductViewSet(viewsets.ModelViewSet):
             f"Product created: {product.name} (ID: {product.id}) by user {request.user.email}"
         )
 
+        ActivityLog.log(
+            action=f"Product '{product.name}' created by {request.user.username}",
+            user=request.user,
+            entity_type='product',
+            entity_id=product.id
+        )
+
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -327,6 +335,13 @@ class ProductViewSet(viewsets.ModelViewSet):
             f"Product updated: {product.name} (ID: {product.id}) by user {request.user.email}"
         )
 
+        ActivityLog.log(
+            action=f"Product '{product.name}' updated by {request.user.username}",
+            user=request.user,
+            entity_type='product',
+            entity_id=product.id
+        )
+
         return Response(response_serializer.data)
 
     @extend_schema(
@@ -349,6 +364,13 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         logger.info(
             f"Product archived: {product.name} (ID: {product.id}) by user {request.user.email}"
+        )
+
+        ActivityLog.log(
+            action=f"Product '{product.name}' updated by {request.user.username}",
+            user=request.user,
+            entity_type='product',
+            entity_id=product.id
         )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -457,6 +479,13 @@ class RestockQueueViewSet(viewsets.ModelViewSet):
             f"Product restocked: {product.name} (ID: {product.id}) - "
             f"Stock: {old_stock} → {product.stock_quantity} (+{quantity_to_add}) "
             f"by user {request.user.email}"
+        )
+
+        ActivityLog.log(
+            action=f"Stock updated for '{product.name}' (+{quantity_to_add} units)",
+            user=request.user,
+            entity_type='restock',
+            entity_id=product.id
         )
 
         # Check if product is still in queue after restock

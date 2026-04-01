@@ -25,6 +25,7 @@ from .serializers import (
     OrderStatusUpdateSerializer
 )
 from products.models import Product
+from activity.models import ActivityLog
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -127,6 +128,14 @@ class OrderViewSet(viewsets.ModelViewSet):
         
         # Return full order detail
         detail_serializer = OrderDetailSerializer(order)
+        # Module B5 — Activity Log
+        ActivityLog.log(
+            action=f"Order #{order.order_number} created by {request.user.username}",
+            user=request.user,
+            entity_type='order',
+            entity_id=order.id
+        )
+
         return Response(
             detail_serializer.data,
             status=status.HTTP_201_CREATED
@@ -159,6 +168,14 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         
+        # Module B5 — Activity Log
+        ActivityLog.log(
+            action=f"Order #{order.order_number} marked as {order.status}",
+            user=request.user,
+            entity_type='order',
+            entity_id=order.id
+        )
+
         # Return full order detail
         detail_serializer = OrderDetailSerializer(order)
         return Response(detail_serializer.data)
@@ -204,6 +221,14 @@ class OrderViewSet(viewsets.ModelViewSet):
         order.status = Order.STATUS_CANCELLED
         order.save()
         
+        # Module B5 — Activity Log
+        ActivityLog.log(
+            action=f"Order #{order.order_number} cancelled by {request.user.username}",
+            user=request.user,
+            entity_type='order',
+            entity_id=order.id
+        )
+
         # Return success response
         detail_serializer = OrderDetailSerializer(order)
         return Response({

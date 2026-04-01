@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'web_api',
     'admin_api',
     'orders',
+    'activity',
 ]
 
 MIDDLEWARE = [
