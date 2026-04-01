@@ -2,7 +2,7 @@
 
 **A production-ready Django REST Framework API deployed on [Render](https://render.com/) using [Neon PostgreSQL](https://neon.tech/) (Free Tier)**
 
-**Live Frontend (React):** [https://eap-assessment-frontend.vercel.app](https://eap-assessment-frontend.vercel.app)
+**Live Frontend (React):** [https://eap-assessment-frontend.vercel.app](https://eap-assessment-frontend.vercel.app/login)
 
 [![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
 [![DRF](https://img.shields.io/badge/DRF-3.14-red.svg)](https://www.django-rest-framework.org/)
