@@ -369,7 +369,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **⭐ Star this repository if you find it helpful!**
 
-🌐 **Live API:** [https://eap-assessment-backend.onrender.com](https://eap-assessment-backend.onrender.com)
+🌐 **Live API:** [https://eap-assessment-backend.onrender.com](https://eap-assessment-backend.onrender.com/api/docs)
 
 [Report Bug](https://github.com/yourusername/eap-assessment-backend/issues) · [Request Feature](https://github.com/yourusername/eap-assessment-backend/issues) · [Documentation](README.md)
 
