@@ -232,7 +232,7 @@ python test_dashboard_stats.py
 
 ## 📖 Documentation
 
-- **[Complete API Documentation](API_DOCS_README.md)** - Detailed API reference with examples
+
 - **[HTTP Cookie Auth Guide](HTTP_COOKIE_AUTH.md)** - Secure cookie-based authentication
 - **[SRS Document](srs.md)** - Software Requirements Specification
 
