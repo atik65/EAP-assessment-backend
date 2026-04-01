@@ -2,10 +2,13 @@
 
 **A production-ready Django REST Framework API deployed on [Render](https://render.com/) using [Neon PostgreSQL](https://neon.tech/) (Free Tier)**
 
+**Live Frontend (React):** [https://eap-assessment-frontend.vercel.app](https://eap-assessment-frontend.vercel.app)
+
 [![Django](https://img.shields.io/badge/Django-5.2-green.svg)](https://www.djangoproject.com/)
 [![DRF](https://img.shields.io/badge/DRF-3.14-red.svg)](https://www.django-rest-framework.org/)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Frontend on Vercel](https://img.shields.io/badge/Frontend-Vercel-black?style=flat&logo=vercel)](https://eap-assessment-frontend.vercel.app)
 [![Deployed on Render](https://img.shields.io/badge/Deployed%20on-Render-5ebaba?style=flat&logo=render)](https://eap-assessment-backend.onrender.com)
 [![Database: Neon](https://img.shields.io/badge/Database-Neon%20DB-00e599?style=flat&logo=postgresql)](https://neon.tech/)
 
@@ -126,9 +129,10 @@ Role: Admin
 
 ## 🌐 Live Demo
 
-**Production API is live!** Try it out without any local setup:
+**Try it out without any local setup:**
 
-**Base URL:** `https://eap-assessment-backend.onrender.com`
+- **Live Frontend (React):** [https://eap-assessment-frontend.vercel.app/login](https://eap-assessment-frontend.vercel.app/login)
+- **Production API:** [https://eap-assessment-backend.onrender.com](https://eap-assessment-backend.onrender.com)
 
 ### Quick Test
 
